@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_HOST_PORT:-4000}:${APP_CONTAINER_PORT:-4000}"
+    environment:
+      NODE_ENV: ${APP_NODE_ENV:-production}
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+      APP_PROTOCOL: ${APP_PROTOCOL:-http}
+      NG_ALLOWED_HOSTS: ${APP_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      PORT: ${APP_CONTAINER_PORT:-4000}
+
+  app-dev:
+    build:
+      context: .
+      dockerfile: local.Dockerfile
+    ports:
+      - "${DEV_HOST_PORT:-4200}:${DEV_CONTAINER_PORT:-4200}"
+    environment:
+      APP_DOMAIN: ${DEV_DOMAIN:-localhost}
+      APP_PROTOCOL: ${APP_PROTOCOL:-http}
+      PORT: ${DEV_CONTAINER_PORT:-4200}
+    command:
+      - sh
+      - -c
+      - |
+        while [ ! -f angular.json ]; do
+          sleep 1
+        done
+        npx ng serve --host 0.0.0.0 --port "${DEV_CONTAINER_PORT:-4200}" --poll "${DEV_POLL_INTERVAL:-500}" --allowed-hosts
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          initial_sync: true
+          ignore:
+            - node_modules/
+            - dist/
+            - .angular/
+            - .git/
