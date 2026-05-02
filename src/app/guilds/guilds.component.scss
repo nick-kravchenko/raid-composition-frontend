@@ -1,0 +1,103 @@
+.guilds-page {
+  padding: 48px 0;
+}
+
+.guilds-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin-bottom: 32px;
+}
+
+.guilds-section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.guilds-auth-message {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+
+.guilds-error {
+  color: var(--state-error);
+  font-size: var(--text-sm);
+  margin-bottom: 12px;
+}
+
+.guilds-empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.guilds-create {
+  margin-bottom: 48px;
+}
+
+.guilds-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+
+  input[type='text'] {
+    flex: 1 1 160px;
+    min-width: 140px;
+  }
+
+  button {
+    flex-shrink: 0;
+  }
+}
+
+.guilds-list-section {
+  margin-top: 8px;
+}
+
+.guilds-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.guild-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background-color: var(--bg-elevated);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+
+  &:hover {
+    border-color: var(--accent);
+    background-color: var(--bg-surface);
+  }
+}
+
+.guild-name {
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.guild-meta {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.guild-role {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: capitalize;
+  margin-top: 4px;
+}

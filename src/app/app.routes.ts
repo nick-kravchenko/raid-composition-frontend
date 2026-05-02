@@ -12,6 +12,9 @@ export const routes: Routes = [
     children: [
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'style-demo', component: StyleDemoComponent },
+      { path: 'guilds', loadComponent: () => import('./guilds/guilds.component').then(m => m.GuildsComponent) },
+      { path: 'guilds/:id', loadComponent: () => import('./guilds/guild-detail.component').then(m => m.GuildDetailComponent) },
+      { path: 'guild-invites/:code', loadComponent: () => import('./guild-invites/accept-invite.component').then(m => m.AcceptInviteComponent) },
     ],
   },
 ];

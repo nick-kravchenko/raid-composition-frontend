@@ -121,17 +121,57 @@ Published tags:
 
 When a same-repository pull request is closed, the workflow removes the matching `pr-<number>` tag from Docker Hub and GHCR. Docker Scout reports high vulnerabilities and fails the workflow on critical vulnerabilities after publishing.
 
+## Guild Management
+
+Authenticated users can create and manage guilds.
+
+### Routes
+
+| Route | Description |
+| --- | --- |
+| `/guilds` | List guilds the current user belongs to; inline create form |
+| `/guilds/:id` | Guild detail — metadata, invite link, member list with promotion |
+| `/guild-invites/:code` | Auto-accept an invite and join a guild as applicant |
+
+### Roles
+
+| Role | Permissions |
+| --- | --- |
+| `admin` | Create invites, promote applicants to raider or officer, update/delete guild |
+| `officer` | View guild and member list |
+| `raider` | View guild and member list |
+| `applicant` | View guild |
+
+### Create a guild
+
+`POST /api/v1/guilds` — requires authentication. Fields: `name`, `realm`, `region` (`us`/`eu`/`kr`/`tw`/`cn`), `faction` (`alliance`/`horde`), `game_version` (`classic1x`/`classic`/`classicann`).
+
+### Invite flow
+
+1. Admin clicks **Generate Invite** on the guild detail page — calls `POST /api/v1/guilds/:id/invites`.
+2. The full invite URL is displayed and can be shared.
+3. Recipient visits the URL (`/guild-invites/:code`) while authenticated — auto-accepted as applicant.
+
+### Member promotion
+
+Admin sees **Promote to Raider** / **Promote to Officer** buttons next to each applicant. Calls `PATCH /api/v1/guilds/:id/members/:user_id`.
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── layout/          # shell layout with header/footer
+│   ├── guild.models.ts      # shared guild interfaces and union types
+│   ├── guild.service.ts     # guild API client (GuildService)
+│   ├── csrf.interceptor.ts  # attaches X-CSRF-Token to mutating requests
+│   ├── guilds/              # /guilds and /guilds/:id components
+│   ├── guild-invites/       # /guild-invites/:code accept component
+│   ├── layout/              # shell layout with header/footer
 │   └── pages/
-│       ├── home/        # landing page
-│       └── style-demo/  # component/style showcase
+│       ├── home/            # landing page
+│       └── style-demo/      # component/style showcase
 ├── assets/
-└── styles/              # global SCSS
+└── styles/                  # global SCSS
 ```
 
 ## Code Generation

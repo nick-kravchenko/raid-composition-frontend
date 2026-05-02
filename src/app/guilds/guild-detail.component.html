@@ -1,0 +1,92 @@
+<div class="container guild-detail-page">
+  <a class="guild-detail-back" [routerLink]="['/guilds']">&larr; Back to Guilds</a>
+
+  @if (unauthenticated()) {
+    <p class="guild-detail-auth-message">Please sign in to view guild details.</p>
+  } @else if (loadError()) {
+    <p class="guild-detail-error">{{ loadError() }}</p>
+  } @else if (guild() === null) {
+    <p class="guild-detail-loading">Loading&hellip;</p>
+  } @else {
+    <section class="guild-detail-header">
+      <h1 class="guild-detail-name">{{ guild()!.name }}</h1>
+      <p class="guild-detail-meta">
+        {{ guild()!.realm }} &middot; {{ guild()!.region | uppercase }} &middot; {{ guild()!.faction | titlecase }} &middot; {{ guild()!.game_version }}
+      </p>
+      @if (guild()!.membership_role) {
+        <p class="guild-detail-role">Your role: <span class="guild-detail-role-value">{{ guild()!.membership_role }}</span></p>
+      }
+    </section>
+
+    @if (isAdmin()) {
+      <section class="guild-detail-invite">
+        <h2 class="guild-detail-section-title">Invite Link</h2>
+
+        @if (displayInviteUrl()) {
+          <p class="guild-detail-invite-label">Share this link:</p>
+          <code class="guild-detail-invite-url">{{ displayInviteUrl() }}</code>
+        }
+
+        <button
+          class="btn btn-primary"
+          [disabled]="generatingInvite()"
+          (click)="onGenerateInvite()"
+        >
+          @if (generatingInvite()) {
+            Generating&hellip;
+          } @else if (displayInviteUrl()) {
+            Rotate Invite
+          } @else {
+            Generate Invite
+          }
+        </button>
+      </section>
+    }
+
+    <section class="guild-detail-members">
+      <h2 class="guild-detail-section-title">Members</h2>
+
+      @if (members().length === 0) {
+        <p class="guild-detail-empty">No members found.</p>
+      } @else {
+        <ul class="guild-detail-member-list">
+          @for (member of members(); track member.user_id) {
+            <li class="guild-detail-member-row">
+              <img
+                class="guild-detail-member-avatar"
+                [src]="member.discord.avatar_url"
+                [alt]="(member.discord.global_name ?? member.discord.username ?? 'Discord user') + ' avatar'"
+              />
+              <div class="guild-detail-member-info">
+                <span class="guild-detail-member-name">{{ member.discord.global_name ?? member.discord.username ?? 'Discord user' }}</span>
+                @if (member.discord.username) {
+                  <span class="guild-detail-member-handle">&commat;{{ member.discord.username }}</span>
+                }
+              </div>
+              <span class="guild-detail-member-role">{{ member.role }}</span>
+
+              @if (isAdmin() && member.role === 'applicant') {
+                <div class="guild-detail-member-actions">
+                  <button
+                    class="btn btn-primary btn--sm"
+                    [disabled]="promotingUserId() === member.user_id"
+                    (click)="onPromoteMember(member.user_id, 'raider')"
+                  >
+                    Promote to Raider
+                  </button>
+                  <button
+                    class="btn btn-ghost btn--sm"
+                    [disabled]="promotingUserId() === member.user_id"
+                    (click)="onPromoteMember(member.user_id, 'officer')"
+                  >
+                    Promote to Officer
+                  </button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

@@ -1,0 +1,91 @@
+<div class="container guilds-page">
+  <h1 class="guilds-title">Guilds</h1>
+
+  @if (currentUser() === null) {
+    <p class="guilds-auth-message">Please sign in to manage guilds</p>
+  } @else {
+    <section class="guilds-create">
+      <h2 class="guilds-section-title">Create a Guild</h2>
+
+      @if (createError()) {
+        <p class="guilds-error">{{ createError() }}</p>
+      }
+
+      <form class="guilds-form" (submit)="$event.preventDefault(); onCreateGuild()">
+        <input
+          type="text"
+          placeholder="Guild name"
+          [value]="formName()"
+          (input)="formName.set($any($event.target).value)"
+          autocomplete="off"
+        />
+        <input
+          type="text"
+          placeholder="Realm"
+          [value]="formRealm()"
+          (input)="formRealm.set($any($event.target).value)"
+          autocomplete="off"
+        />
+        <select
+          [value]="formRegion()"
+          (change)="formRegion.set($any($event.target).value)"
+        >
+          <option value="" disabled selected>Region</option>
+          <option value="us">US</option>
+          <option value="eu">EU</option>
+          <option value="kr">KR</option>
+          <option value="tw">TW</option>
+          <option value="cn">CN</option>
+        </select>
+        <select
+          [value]="formFaction()"
+          (change)="formFaction.set($any($event.target).value)"
+        >
+          <option value="" disabled selected>Faction</option>
+          <option value="alliance">Alliance</option>
+          <option value="horde">Horde</option>
+        </select>
+        <select
+          [value]="formGameVersion()"
+          (change)="formGameVersion.set($any($event.target).value)"
+        >
+          <option value="" disabled selected>Game version</option>
+          <option value="classic1x">Classic (1x)</option>
+          <option value="classic">Season of Discovery</option>
+          <option value="classicann">Classic Anniversary</option>
+        </select>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isSubmitDisabled"
+        >
+          @if (creating()) {
+            Creating…
+          } @else {
+            Create Guild
+          }
+        </button>
+      </form>
+    </section>
+
+    <section class="guilds-list-section">
+      <h2 class="guilds-section-title">Your Guilds</h2>
+
+      @if (guilds().length === 0) {
+        <p class="guilds-empty">No guilds yet. Create one above.</p>
+      } @else {
+        <ul class="guilds-list">
+          @for (guild of guilds(); track guild.id) {
+            <li class="guild-card" [routerLink]="['/guilds', guild.id]">
+              <span class="guild-name">{{ guild.name }}</span>
+              <span class="guild-meta">{{ guild.realm }} &middot; {{ guild.region | uppercase }} &middot; {{ guild.faction | titlecase }} &middot; {{ guild.game_version }}</span>
+              @if (guild.membership_role) {
+                <span class="guild-role">{{ guild.membership_role }}</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

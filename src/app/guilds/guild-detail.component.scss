@@ -1,0 +1,154 @@
+.guild-detail-page {
+  padding: 48px 0;
+}
+
+.guild-detail-back {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.guild-detail-auth-message,
+.guild-detail-loading {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+}
+
+.guild-detail-error {
+  color: var(--state-error);
+  font-size: var(--text-sm);
+}
+
+.guild-detail-header {
+  margin-bottom: 40px;
+}
+
+.guild-detail-name {
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.guild-detail-meta {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.guild-detail-role {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.guild-detail-role-value {
+  text-transform: capitalize;
+  color: var(--text-secondary);
+}
+
+.guild-detail-section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.guild-detail-invite {
+  margin-bottom: 40px;
+}
+
+.guild-detail-invite-label {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.guild-detail-invite-url {
+  display: block;
+  padding: 10px 14px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-size: var(--text-sm);
+  color: var(--state-success);
+  word-break: break-all;
+  user-select: all;
+}
+
+.guild-detail-members {
+  margin-top: 8px;
+}
+
+.guild-detail-empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.guild-detail-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guild-detail-member-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.guild-detail-member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.guild-detail-member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guild-detail-member-name {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guild-detail-member-handle {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.guild-detail-member-role {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.guild-detail-member-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
