@@ -1,0 +1,265 @@
+name: ci-docker
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, closed]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Node checks & build
+    if: ${{ github.event_name != 'pull_request' || github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Tests
+        run: npm test -- --watch=false
+
+      - name: Build
+        run: npm run build
+
+  build:
+    name: Docker image
+    if: ${{ github.event_name != 'pull_request' || github.event.action != 'closed' }}
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare image publishing
+        id: prepare
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          REF: ${{ github.ref }}
+          REPOSITORY: ${{ github.repository }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          push_allowed=false
+
+          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/master" ]]; then
+            push_allowed=true
+          elif [[ "${EVENT_NAME}" == "release" && "${EVENT_ACTION}" == "published" ]]; then
+            if [[ ! "${RELEASE_TAG}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Release tag '${RELEASE_TAG}' must match vMAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH." >&2
+              exit 1
+            fi
+            push_allowed=true
+          elif [[ "${EVENT_NAME}" == "pull_request" && "${EVENT_ACTION}" != "closed" && "${PR_HEAD_REPOSITORY}" == "${REPOSITORY}" ]]; then
+            push_allowed=true
+          fi
+
+          dockerhub_namespace="${DOCKERHUB_USERNAME:-local}"
+          dockerhub_image="docker.io/${dockerhub_namespace}/raid-composition-frontend"
+          ghcr_image="ghcr.io/${REPOSITORY,,}"
+          scan_image=""
+
+          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/master" ]]; then
+            scan_image="${dockerhub_image}:latest"
+          elif [[ "${EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            scan_image="${dockerhub_image}:pr-${PR_NUMBER}"
+          elif [[ "${EVENT_NAME}" == "release" && -n "${RELEASE_TAG}" ]]; then
+            scan_tag="${RELEASE_TAG#v}"
+            scan_image="${dockerhub_image}:${scan_tag}"
+          fi
+
+          {
+            echo "push_allowed=${push_allowed}"
+            echo "dockerhub_image=${dockerhub_image}"
+            echo "ghcr_image=${ghcr_image}"
+            echo "scan_image=${scan_image}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to Docker Hub
+        if: ${{ steps.prepare.outputs.push_allowed == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        if: ${{ steps.prepare.outputs.push_allowed == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Hub metadata
+        id: meta_dockerhub
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.prepare.outputs.dockerhub_image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=edge-master,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=ref,event=pr,enable=${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
+            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+
+      - name: GHCR metadata
+        id: meta_ghcr
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.prepare.outputs.ghcr_image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=edge-master,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=ref,event=pr,enable=${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
+            type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: ${{ steps.prepare.outputs.push_allowed == 'true' }}
+          labels: ${{ steps.meta_dockerhub.outputs.labels }}
+          tags: |
+            ${{ steps.meta_dockerhub.outputs.tags }}
+            ${{ steps.meta_ghcr.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Docker Scout report high vulnerabilities
+        if: ${{ steps.prepare.outputs.push_allowed == 'true' }}
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.prepare.outputs.scan_image }}
+          only-severities: high
+          exit-code: false
+
+      - name: Docker Scout fail on critical vulnerabilities
+        if: ${{ steps.prepare.outputs.push_allowed == 'true' }}
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.prepare.outputs.scan_image }}
+          only-severities: critical
+          exit-code: true
+
+  cleanup-pr-image:
+    name: Cleanup PR image
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Delete Docker Hub PR tag
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          tag="pr-${PR_NUMBER}"
+          token="$(
+            curl --fail --silent --show-error \
+              --request POST \
+              --header "Content-Type: application/json" \
+              --data "{\"username\":\"${DOCKERHUB_USERNAME}\",\"password\":\"${DOCKERHUB_TOKEN}\"}" \
+              https://hub.docker.com/v2/users/login/ |
+            jq -r '.token'
+          )"
+
+          status="$(
+            curl --silent --show-error \
+              --output /dev/null \
+              --write-out "%{http_code}" \
+              --request DELETE \
+              --header "Authorization: JWT ${token}" \
+              "https://hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/raid-composition-frontend/tags/${tag}/"
+          )"
+
+          if [[ "${status}" == "404" ]]; then
+            echo "Docker Hub tag ${tag} was already absent."
+          elif [[ "${status}" -lt 200 || "${status}" -ge 300 ]]; then
+            echo "Docker Hub tag delete failed with HTTP ${status}." >&2
+            exit 1
+          fi
+
+      - name: Delete GHCR PR image version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          PACKAGE_NAME: ${{ github.event.repository.name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          tag="pr-${PR_NUMBER}"
+          if [[ "${OWNER_TYPE}" == "Organization" ]]; then
+            list_path="/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions"
+            delete_prefix="/orgs/${OWNER}/packages/container/${PACKAGE_NAME}/versions"
+          else
+            list_path="/user/packages/container/${PACKAGE_NAME}/versions"
+            delete_prefix="/user/packages/container/${PACKAGE_NAME}/versions"
+          fi
+
+          error_file="$(mktemp)"
+          if ! versions_json="$(gh api "${list_path}" --paginate 2>"${error_file}")"; then
+            if grep -q "HTTP 404\\|Not Found" "${error_file}"; then
+              echo "GHCR package ${PACKAGE_NAME} was already absent."
+              exit 0
+            fi
+
+            cat "${error_file}" >&2
+            exit 1
+          fi
+
+          version_id="$(
+            jq -r --arg tag "${tag}" '.[] | select((.metadata.container.tags // []) | index($tag)) | .id' <<< "${versions_json}" |
+            head -n 1
+          )"
+
+          if [[ -n "${version_id}" ]]; then
+            gh api --method DELETE "${delete_prefix}/${version_id}"
+          else
+            echo "GHCR tag ${tag} was already absent."
+          fi

@@ -57,18 +57,60 @@ docker compose down
 
 ### Environment Variables
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `APP_PROTOCOL` | `http` | Public protocol metadata for the app container. |
-| `APP_DOMAIN` | `localhost` | Public domain metadata for the production app container. |
-| `APP_NODE_ENV` | `production` | `NODE_ENV` value for the production app container. |
-| `APP_HOST_PORT` | `4000` | Host port mapped to the production container. |
-| `APP_CONTAINER_PORT` | `4000` | Port the SSR server listens on inside the production container. |
-| `APP_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Angular SSR allowed hosts. |
-| `DEV_DOMAIN` | `localhost` | Public domain metadata for the dev container. |
-| `DEV_HOST_PORT` | `4200` | Host port mapped to the dev container. |
-| `DEV_CONTAINER_PORT` | `4200` | Port Angular dev server listens on inside the dev container. |
-| `DEV_POLL_INTERVAL` | `500` | File-watch polling interval in milliseconds. |
+| Variable             | Default               | Purpose                                                         |
+| -------------------- | --------------------- | --------------------------------------------------------------- |
+| `APP_PROTOCOL`       | `http`                | Public protocol metadata for the app container.                 |
+| `APP_DOMAIN`         | `localhost`           | Public domain metadata for the production app container.        |
+| `APP_NODE_ENV`       | `production`          | `NODE_ENV` value for the production app container.              |
+| `APP_HOST_PORT`      | `4000`                | Host port mapped to the production container.                   |
+| `APP_CONTAINER_PORT` | `4000`                | Port the SSR server listens on inside the production container. |
+| `APP_ALLOWED_HOSTS`  | `localhost,127.0.0.1` | Angular SSR allowed hosts.                                      |
+| `DEV_DOMAIN`         | `localhost`           | Public domain metadata for the dev container.                   |
+| `DEV_HOST_PORT`      | `4200`                | Host port mapped to the dev container.                          |
+| `DEV_CONTAINER_PORT` | `4200`                | Port Angular dev server listens on inside the dev container.    |
+| `DEV_POLL_INTERVAL`  | `500`                 | File-watch polling interval in milliseconds.                    |
+
+## CI/CD
+
+Docker image publishing is handled by `.github/workflows/docker.yml`.
+
+The workflow runs on:
+
+- pushes to `master`
+- pull requests targeting `master`
+- published GitHub releases
+
+Before building the Docker image, CI runs:
+
+```bash
+npm ci
+npm test -- --watch=false
+npm run build
+```
+
+Images are built for `linux/amd64` and published to:
+
+- Docker Hub: `docker.io/<DOCKERHUB_USERNAME>/raid-composition-frontend`
+- GHCR: `ghcr.io/<owner>/raid-composition-frontend`
+
+Required repository secrets:
+
+| Secret               | Purpose                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `DOCKERHUB_USERNAME` | Docker Hub namespace and login username.                   |
+| `DOCKERHUB_TOKEN`    | Docker Hub access token for publishing and PR tag cleanup. |
+
+GHCR publishing uses the built-in `GITHUB_TOKEN`.
+
+Published tags:
+
+| Event                                  | Tags                                    |
+| -------------------------------------- | --------------------------------------- |
+| `push` to `master`                     | `latest`, `edge-master`, `sha-<commit>` |
+| same-repository pull request           | `pr-<number>`                           |
+| published release `vMAJOR.MINOR.PATCH` | `<version>`, `<major>.<minor>`          |
+
+When a same-repository pull request is closed, the workflow removes the matching `pr-<number>` tag from Docker Hub and GHCR. Docker Scout reports high vulnerabilities and fails the workflow on critical vulnerabilities after publishing.
 
 ## Project Structure
 
