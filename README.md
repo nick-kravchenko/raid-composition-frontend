@@ -76,8 +76,8 @@ Docker image publishing is handled by `.github/workflows/docker.yml`.
 
 The workflow runs on:
 
-- pushes to `master`
-- pull requests targeting `master`
+- pushes to `main`
+- pull requests targeting `main`
 - published GitHub releases
 
 Before building the Docker image, CI runs:
@@ -104,11 +104,11 @@ GHCR publishing uses the built-in `GITHUB_TOKEN`.
 
 Published tags:
 
-| Event                                  | Tags                                    |
-| -------------------------------------- | --------------------------------------- |
-| `push` to `master`                     | `latest`, `edge-master`, `sha-<commit>` |
-| same-repository pull request           | `pr-<number>`                           |
-| published release `vMAJOR.MINOR.PATCH` | `<version>`, `<major>.<minor>`          |
+| Event                                  | Tags                                  |
+| -------------------------------------- | ------------------------------------- |
+| `push` to `main`                       | `latest`, `edge-main`, `sha-<commit>` |
+| same-repository pull request           | `pr-<number>`                         |
+| published release `vMAJOR.MINOR.PATCH` | `<version>`, `<major>.<minor>`        |
 
 When a same-repository pull request is closed, the workflow removes the matching `pr-<number>` tag from Docker Hub and GHCR. Docker Scout reports high vulnerabilities and fails the workflow on critical vulnerabilities after publishing.
 

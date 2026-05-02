@@ -2,9 +2,9 @@ name: ci-docker
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
     types: [opened, synchronize, reopened, closed]
   release:
     types: [published]
@@ -69,7 +69,7 @@ jobs:
 
           push_allowed=false
 
-          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/master" ]]; then
+          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/main" ]]; then
             push_allowed=true
           elif [[ "${EVENT_NAME}" == "release" && "${EVENT_ACTION}" == "published" ]]; then
             if [[ ! "${RELEASE_TAG}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -86,7 +86,7 @@ jobs:
           ghcr_image="ghcr.io/${REPOSITORY,,}"
           scan_image=""
 
-          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/master" ]]; then
+          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/main" ]]; then
             scan_image="${dockerhub_image}:latest"
           elif [[ "${EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
             scan_image="${dockerhub_image}:pr-${PR_NUMBER}"
@@ -125,9 +125,9 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-            type=raw,value=edge-master,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=raw,value=edge-main,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             type=ref,event=pr,enable=${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
             type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
@@ -140,9 +140,9 @@ jobs:
           flavor: |
             latest=false
           tags: |
-            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-            type=raw,value=edge-master,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=raw,value=edge-main,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
             type=ref,event=pr,enable=${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
             type=semver,pattern={{version}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
