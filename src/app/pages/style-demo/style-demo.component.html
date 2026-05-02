@@ -1,0 +1,322 @@
+<div class="style-demo">
+  <div class="container">
+
+    <!-- ─── Page title ─────────────────────────────────────────────── -->
+    <header class="demo-header">
+      <p class="text-muted text-sm">raid-composition-frontend · design system</p>
+      <h1 class="text-4xl fw-bold">Style Demo</h1>
+      <p class="text-secondary text-lg">All global tokens, components, and utilities in one place.</p>
+    </header>
+
+    <!-- ─── Typography ────────────────────────────────────────────── -->
+    <section class="demo-section">
+      <h2 class="demo-section__title">Typography — Scale</h2>
+      <div class="demo-block">
+        <div class="typo-row"><span class="demo-label">text-4xl · fw-bold</span>   <span class="text-4xl fw-bold">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-3xl · fw-semibold</span><span class="text-3xl fw-semibold">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-2xl · fw-medium</span> <span class="text-2xl fw-medium">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-xl · fw-regular</span> <span class="text-xl fw-regular">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-lg</span>              <span class="text-lg">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-base</span>            <span class="text-base">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-sm</span>              <span class="text-sm">Raid Composition</span></div>
+        <div class="typo-row"><span class="demo-label">text-xs</span>              <span class="text-xs">Raid Composition</span></div>
+      </div>
+
+      <h2 class="demo-section__title">Typography — Color</h2>
+      <div class="demo-block">
+        <div class="typo-row"><span class="demo-label">text-primary</span>  <span class="text-primary text-base">The quick brown fox jumps over the lazy dog</span></div>
+        <div class="typo-row"><span class="demo-label">text-secondary</span><span class="text-secondary text-base">The quick brown fox jumps over the lazy dog</span></div>
+        <div class="typo-row"><span class="demo-label">text-muted</span>    <span class="text-muted text-base">The quick brown fox jumps over the lazy dog</span></div>
+      </div>
+    </section>
+
+    <!-- ─── Color tokens ──────────────────────────────────────────── -->
+    <section class="demo-section">
+      <h2 class="demo-section__title">Color Tokens — Backgrounds</h2>
+      <div class="swatch-row">
+        <div class="swatch" style="background-color: var(--bg-base)">
+          <span>bg-base</span>
+        </div>
+        <div class="swatch" style="background-color: var(--bg-surface)">
+          <span>bg-surface</span>
+        </div>
+        <div class="swatch" style="background-color: var(--bg-elevated)">
+          <span>bg-elevated</span>
+        </div>
+        <div class="swatch" style="background-color: var(--bg-overlay)">
+          <span>bg-overlay</span>
+        </div>
+      </div>
+
+      <h2 class="demo-section__title">Color Tokens — Borders</h2>
+      <div class="border-row">
+        <div class="border-sample" style="border-color: var(--border-subtle)"><span class="text-muted text-xs">border-subtle</span></div>
+        <div class="border-sample" style="border-color: var(--border-default)"><span class="text-muted text-xs">border-default</span></div>
+        <div class="border-sample" style="border-color: var(--border-strong)"><span class="text-muted text-xs">border-strong</span></div>
+      </div>
+
+      <h2 class="demo-section__title">Color Tokens — Accent</h2>
+      <div class="swatch-row">
+        <div class="swatch" style="background-color: var(--accent)"><span>accent</span></div>
+        <div class="swatch" style="background-color: var(--accent-hover)"><span>accent-hover</span></div>
+        <div class="swatch swatch--subtle" style="background-color: var(--accent-subtle)"><span>accent-subtle</span></div>
+        <div class="swatch" style="background-color: var(--accent-2)"><span>accent-2</span></div>
+        <div class="swatch" style="background-color: var(--accent-2-hover)"><span>accent-2-hover</span></div>
+        <div class="swatch swatch--subtle" style="background-color: var(--accent-2-subtle)"><span>accent-2-subtle</span></div>
+      </div>
+
+      <h2 class="demo-section__title">Color Tokens — State</h2>
+      <div class="swatch-row">
+        <div class="swatch" style="background-color: var(--state-success)"><span>success</span></div>
+        <div class="swatch" style="background-color: var(--state-warning)"><span>warning</span></div>
+        <div class="swatch" style="background-color: var(--state-error)"><span>error</span></div>
+        <div class="swatch" style="background-color: var(--state-info)"><span>info</span></div>
+      </div>
+
+      <h2 class="demo-section__title">Color Tokens — WoW Classes</h2>
+      <div class="swatch-row swatch-row--wrap">
+        <div class="swatch swatch--sm" style="background-color: var(--class-death-knight)"><span>Death Knight</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-demon-hunter)"><span>Demon Hunter</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-druid)"><span>Druid</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-evoker)"><span>Evoker</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-hunter)"><span>Hunter</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-mage)"><span>Mage</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-monk)"><span>Monk</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-paladin)"><span>Paladin</span></div>
+        <div class="swatch swatch--sm swatch--outline" style="background-color: var(--class-priest)"><span style="color: #0f0f13; text-shadow: none;">Priest</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-rogue)"><span style="color: #0f0f13; text-shadow: none;">Rogue</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-shaman)"><span>Shaman</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-warlock)"><span>Warlock</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--class-warrior)"><span style="color: #0f0f13; text-shadow: none;">Warrior</span></div>
+      </div>
+
+      <h2 class="demo-section__title">Color Tokens — WarcraftLogs Parse Tiers</h2>
+      <div class="swatch-row">
+        <div class="swatch swatch--sm" style="background-color: var(--parse-gray)"><span style="color: #0f0f13; text-shadow: none;">0–24</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-green)"><span style="color: #0f0f13; text-shadow: none;">25–49</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-blue)"><span>50–74</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-purple)"><span>75–94</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-orange)"><span style="color: #0f0f13; text-shadow: none;">95–98</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-pink)"><span>99</span></div>
+        <div class="swatch swatch--sm" style="background-color: var(--parse-gold)"><span style="color: #0f0f13; text-shadow: none;">100</span></div>
+      </div>
+    </section>
+
+    <!-- ─── Buttons ───────────────────────────────────────────────── -->
+    <section class="demo-section">
+      <h2 class="demo-section__title">Buttons</h2>
+
+      <div class="demo-group demo-group--header">
+        <span></span>
+        <div class="demo-row">
+          <span class="demo-col-label">Contained</span>
+          <span class="demo-col-label">Outlined</span>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Primary</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-primary">Small</button>
+            <button class="btn btn-primary">Default</button>
+            <button class="btn btn--lg btn-primary">Large</button>
+            <button class="btn btn-primary" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-primary--outlined">Small</button>
+            <button class="btn btn-primary--outlined">Default</button>
+            <button class="btn btn--lg btn-primary--outlined">Large</button>
+            <button class="btn btn-primary--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Secondary</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-secondary">Small</button>
+            <button class="btn btn-secondary">Default</button>
+            <button class="btn btn--lg btn-secondary">Large</button>
+            <button class="btn btn-secondary" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-secondary--outlined">Small</button>
+            <button class="btn btn-secondary--outlined">Default</button>
+            <button class="btn btn--lg btn-secondary--outlined">Large</button>
+            <button class="btn btn-secondary--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Ghost</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-ghost">Small</button>
+            <button class="btn btn-ghost">Default</button>
+            <button class="btn btn--lg btn-ghost">Large</button>
+            <button class="btn btn-ghost" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Success</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-success">Small</button>
+            <button class="btn btn-success">Default</button>
+            <button class="btn btn--lg btn-success">Large</button>
+            <button class="btn btn-success" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-success--outlined">Small</button>
+            <button class="btn btn-success--outlined">Default</button>
+            <button class="btn btn--lg btn-success--outlined">Large</button>
+            <button class="btn btn-success--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Warning</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-warning">Small</button>
+            <button class="btn btn-warning">Default</button>
+            <button class="btn btn--lg btn-warning">Large</button>
+            <button class="btn btn-warning" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-warning--outlined">Small</button>
+            <button class="btn btn-warning--outlined">Default</button>
+            <button class="btn btn--lg btn-warning--outlined">Large</button>
+            <button class="btn btn-warning--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Danger</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-danger">Small</button>
+            <button class="btn btn-danger">Default</button>
+            <button class="btn btn--lg btn-danger">Large</button>
+            <button class="btn btn-danger" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-danger--outlined">Small</button>
+            <button class="btn btn-danger--outlined">Default</button>
+            <button class="btn btn--lg btn-danger--outlined">Large</button>
+            <button class="btn btn-danger--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Info</span>
+        <div class="demo-row">
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-info">Small</button>
+            <button class="btn btn-info">Default</button>
+            <button class="btn btn--lg btn-info">Large</button>
+            <button class="btn btn-info" disabled>Disabled</button>
+          </div>
+          <div class="btn-pair">
+            <button class="btn btn--sm btn-info--outlined">Small</button>
+            <button class="btn btn-info--outlined">Default</button>
+            <button class="btn btn--lg btn-info--outlined">Large</button>
+            <button class="btn btn-info--outlined" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Inputs ────────────────────────────────────────────────── -->
+    <section class="demo-section">
+      <h2 class="demo-section__title">Inputs</h2>
+
+      <div class="demo-group">
+        <span class="demo-label">Text</span>
+        <div class="input-col">
+          <input type="text" placeholder="Placeholder text" />
+          <input type="text" value="Filled value" />
+          <input type="text" value="Disabled" disabled />
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Number</span>
+        <div class="input-col">
+          <input type="number" placeholder="0" />
+          <input type="number" value="42" />
+          <input type="number" value="0" disabled />
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Select</span>
+        <div class="input-col">
+          <select>
+            <option value="" disabled selected>Choose a class</option>
+            <option>Death Knight</option>
+            <option>Druid</option>
+            <option>Hunter</option>
+            <option>Mage</option>
+            <option>Paladin</option>
+          </select>
+          <select disabled>
+            <option>Disabled select</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Validation</span>
+        <div class="input-col">
+          <input type="text" class="is-valid"   value="Valid input"   />
+          <input type="text" class="is-warning" value="Warning input" />
+          <input type="text" class="is-invalid" value="Invalid input" />
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <span class="demo-label">Checkbox</span>
+        <div class="demo-row demo-row--gap">
+          <label class="checkbox-label">
+            <input type="checkbox" /> Unchecked
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" checked /> Checked
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" disabled /> Disabled unchecked
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" checked disabled /> Disabled checked
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Layout ────────────────────────────────────────────────── -->
+    <section class="demo-section">
+      <h2 class="demo-section__title">Layout — .container</h2>
+      <div class="demo-block">
+        <p class="text-secondary text-sm">
+          Current element is inside <code>.container</code> — max-width 1630px, centered, 10px side padding.
+          Resize the viewport to observe fluid behaviour.
+        </p>
+        <div class="container-viz">
+          <div class="container-viz__inner">
+            <span class="text-muted text-xs">← .container boundary →</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /.container -->
+</div><!-- /.style-demo -->

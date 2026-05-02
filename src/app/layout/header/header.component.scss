@@ -1,0 +1,120 @@
+.header {
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  height: 56px;
+  top: 0;
+  z-index: 100;
+  position: relative;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.logo {
+  font-weight: var(--fw-bold);
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  transition: color 150ms ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: none;
+  background-color: #5865F2;
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: #4752c4;
+  }
+}
+
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-primary);
+  border-radius: 6px;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: var(--bg-elevated);
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    position: sticky;
+  }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    background-color: var(--bg-overlay);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 8px 0;
+    z-index: 99;
+
+    &.nav--open {
+      display: flex;
+    }
+  }
+
+  .nav-link {
+    padding: 10px 20px;
+    font-size: var(--text-base);
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}

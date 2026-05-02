@@ -1,0 +1,23 @@
+// WoW class colors (official Blizzard values)
+$class-death-knight: #C41E3A;
+$class-demon-hunter: #A330C9;
+$class-druid: #FF7C0A;
+$class-evoker: #33937F;
+$class-hunter: #AAD372;
+$class-mage: #3FC7EB;
+$class-monk: #00FF98;
+$class-paladin: #F48CBA;
+$class-priest: #FFFFFF; // white — verify contrast before use on dark surfaces
+$class-rogue: #FFF468;
+$class-shaman: #0070DD;
+$class-warlock: #8788EE;
+$class-warrior: #C69B6D;
+
+// WarcraftLogs parse tier colors
+$parse-gray: #9d9d9d;   // 0–24
+$parse-green: #1eff00;  // 25–49
+$parse-blue: #0070dd;   // 50–74
+$parse-purple: #a335ee; // 75–94
+$parse-orange: #ff8000; // 95–98
+$parse-pink: #e268a8;   // 99
+$parse-gold: #e5cc80;   // 100

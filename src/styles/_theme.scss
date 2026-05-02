@@ -1,0 +1,97 @@
+//@use 'variables_default' as v; // dark
+//@use 'variables_deep-jewel' as v; // dark
+//@use 'variables_digital-futurism' as v; // dark
+//@use 'variables_digital-pop' as v; // dark
+@use 'variables_dark' as v; // dark
+
+//@use 'variables_coastal-fresh.scss' as v; // light
+//@use 'variables_earth-grounded' as v; // light
+//@use 'variables_soft-tech-minimal' as v; // light
+//@use 'variables_warm-retro' as v; // light
+//@use 'variables_wellness-pastels' as v; // light
+@use 'variables_game' as g;
+@use 'variables_typography' as t;
+
+:root {
+  // Background
+  --bg-base: #{v.$bg-base};
+  --bg-surface: #{v.$bg-surface};
+  --bg-elevated: #{v.$bg-elevated};
+  --bg-overlay: #{v.$bg-overlay};
+
+  // Border
+  --border-subtle: #{v.$border-subtle};
+  --border-default: #{v.$border-default};
+  --border-strong: #{v.$border-strong};
+
+  // Text
+  --text-primary: #{v.$text-primary};
+  --text-secondary: #{v.$text-secondary};
+  --text-muted: #{v.$text-muted};
+
+  // Accent
+  --accent: #{v.$accent};
+  --accent-hover: #{v.$accent-hover};
+  --accent-subtle: #{v.$accent-subtle};
+
+  // Accent 2
+  --accent-2: #{v.$accent-2};
+  --accent-2-hover: #{v.$accent-2-hover};
+  --accent-2-subtle: #{v.$accent-2-subtle};
+
+  // State
+  --state-success: #{v.$state-success};
+  --state-warning: #{v.$state-warning};
+  --state-error: #{v.$state-error};
+  --state-info: #{v.$state-info};
+
+  // WoW class colors
+  --class-death-knight: #{g.$class-death-knight};
+  --class-demon-hunter: #{g.$class-demon-hunter};
+  --class-druid: #{g.$class-druid};
+  --class-evoker: #{g.$class-evoker};
+  --class-hunter: #{g.$class-hunter};
+  --class-mage: #{g.$class-mage};
+  --class-monk: #{g.$class-monk};
+  --class-paladin: #{g.$class-paladin};
+  --class-priest: #{g.$class-priest}; // white — verify contrast before use on dark surfaces
+  --class-rogue: #{g.$class-rogue};
+  --class-shaman: #{g.$class-shaman};
+  --class-warlock: #{g.$class-warlock};
+  --class-warrior: #{g.$class-warrior};
+
+  // WarcraftLogs parse tiers
+  --parse-gray: #{g.$parse-gray};
+  --parse-green: #{g.$parse-green};
+  --parse-blue: #{g.$parse-blue};
+  --parse-purple: #{g.$parse-purple};
+  --parse-orange: #{g.$parse-orange};
+  --parse-pink: #{g.$parse-pink};
+  --parse-gold: #{g.$parse-gold};
+
+  // Typography — size
+  --text-xs: #{t.$text-xs};
+  --text-sm: #{t.$text-sm};
+  --text-base: #{t.$text-base};
+  --text-lg: #{t.$text-lg};
+  --text-xl: #{t.$text-xl};
+  --text-2xl: #{t.$text-2xl};
+  --text-3xl: #{t.$text-3xl};
+  --text-4xl: #{t.$text-4xl};
+
+  // Typography — line-height
+  --leading-xs: #{t.$leading-xs};
+  --leading-sm: #{t.$leading-sm};
+  --leading-base: #{t.$leading-base};
+  --leading-lg: #{t.$leading-lg};
+  --leading-xl: #{t.$leading-xl};
+  --leading-2xl: #{t.$leading-2xl};
+  --leading-3xl: #{t.$leading-3xl};
+  --leading-4xl: #{t.$leading-4xl};
+
+  // Typography — weight
+  --fw-regular: #{t.$fw-regular};
+  --fw-medium: #{t.$fw-medium};
+  --fw-semibold: #{t.$fw-semibold};
+  --fw-bold: #{t.$fw-bold};
+}
