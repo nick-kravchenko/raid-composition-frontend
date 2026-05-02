@@ -2,6 +2,15 @@
 
 Angular 21 frontend for building and managing raid compositions.
 
+## Authentication
+
+The frontend talks to the backend at `http://localhost:8000/api/v1` during local development.
+
+- Click `Login with Discord` in the header to start OAuth.
+- Discord returns to `/auth/discord/callback`.
+- After sign-in, the header shows the Discord profile and exposes a logout action in the user menu.
+- Session and OAuth requests use browser credentials so the backend can manage cookie-backed auth.
+
 ## Stack
 
 - **Angular 21** with SSR (`@angular/ssr`)
