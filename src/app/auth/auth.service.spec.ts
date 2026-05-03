@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
+import { API_BASE } from '../app.tokens';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -11,7 +12,11 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_BASE, useValue: 'http://localhost:8000/api/v1' },
+      ],
     });
 
     service = TestBed.inject(AuthService);

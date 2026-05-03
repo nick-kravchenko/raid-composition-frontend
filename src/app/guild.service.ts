@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { API_BASE } from './app.tokens';
 import {
   CreateGuildPayload,
   Guild,
@@ -14,52 +15,51 @@ import {
   GuildsResponse,
 } from './guild.models';
 
-const API = 'http://localhost:8000/api/v1';
-
 @Injectable({ providedIn: 'root' })
 export class GuildService {
   private readonly http = inject(HttpClient);
+  private readonly apiBase = inject(API_BASE);
 
   listGuilds(): Observable<Guild[]> {
     return this.http
-      .get<GuildsResponse>(`${API}/guilds`, { withCredentials: true })
+      .get<GuildsResponse>(`${this.apiBase}/guilds`, { withCredentials: true })
       .pipe(map((res) => res.guilds));
   }
 
   createGuild(payload: CreateGuildPayload): Observable<Guild> {
     return this.http
-      .post<GuildResponse>(`${API}/guilds`, payload, { withCredentials: true })
+      .post<GuildResponse>(`${this.apiBase}/guilds`, payload, { withCredentials: true })
       .pipe(map((res) => res.guild));
   }
 
   getGuild(id: string): Observable<Guild> {
     return this.http
-      .get<GuildResponse>(`${API}/guilds/${id}`, { withCredentials: true })
+      .get<GuildResponse>(`${this.apiBase}/guilds/${id}`, { withCredentials: true })
       .pipe(map((res) => res.guild));
   }
 
   listMembers(id: string): Observable<GuildMember[]> {
     return this.http
-      .get<GuildMembersResponse>(`${API}/guilds/${id}/members`, { withCredentials: true })
+      .get<GuildMembersResponse>(`${this.apiBase}/guilds/${id}/members`, { withCredentials: true })
       .pipe(map((res) => res.members));
   }
 
   createInvite(guildId: string): Observable<GuildInvite> {
     return this.http
-      .post<GuildInviteResponse>(`${API}/guilds/${guildId}/invites`, {}, { withCredentials: true })
+      .post<GuildInviteResponse>(`${this.apiBase}/guilds/${guildId}/invites`, {}, { withCredentials: true })
       .pipe(map((res) => res.invite));
   }
 
   acceptInvite(code: string): Observable<Guild> {
     return this.http
-      .post<GuildResponse>(`${API}/guild-invites/${code}/accept`, {}, { withCredentials: true })
+      .post<GuildResponse>(`${this.apiBase}/guild-invites/${code}/accept`, {}, { withCredentials: true })
       .pipe(map((res) => res.guild));
   }
 
   promoteMember(guildId: string, userId: string, role: 'raider' | 'officer'): Observable<GuildMember> {
     return this.http
       .patch<{ member: GuildMember }>(
-        `${API}/guilds/${guildId}/members/${userId}`,
+        `${this.apiBase}/guilds/${guildId}/members/${userId}`,
         { role },
         { withCredentials: true },
       )

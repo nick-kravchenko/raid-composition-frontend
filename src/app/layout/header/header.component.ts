@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
@@ -10,7 +10,7 @@ import { SafeUser } from '../../auth/auth.models';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent {
   private readonly auth = inject(AuthService);
 
   isMenuOpen = signal(false);
@@ -19,10 +19,6 @@ export class HeaderComponent implements OnInit {
   isLoginPending = signal(false);
   authState = this.auth.state;
   currentUser = this.auth.currentUser;
-
-  ngOnInit(): void {
-    void this.auth.loadSession();
-  }
 
   toggleMenu(): void {
     this.isMenuOpen.update((v) => !v);

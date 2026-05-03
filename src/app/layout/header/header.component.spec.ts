@@ -36,10 +36,6 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
   });
 
-  it('loads the current session on init', () => {
-    expect(authService.loadSession).toHaveBeenCalled();
-  });
-
   it('starts Discord login from the header action', () => {
     const button = getDiscordLoginButton();
 

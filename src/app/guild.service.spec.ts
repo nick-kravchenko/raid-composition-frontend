@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
+import { API_BASE } from './app.tokens';
 import { GuildService } from './guild.service';
 
 const API = 'http://localhost:8000/api/v1';
@@ -44,7 +45,11 @@ describe('GuildService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_BASE, useValue: 'http://localhost:8000/api/v1' },
+      ],
     });
     service = TestBed.inject(GuildService);
     http = TestBed.inject(HttpTestingController);

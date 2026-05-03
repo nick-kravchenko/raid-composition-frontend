@@ -16,8 +16,7 @@ services:
     build:
       context: .
       dockerfile: local.Dockerfile
-    ports:
-      - "${DEV_HOST_PORT:-4200}:${DEV_CONTAINER_PORT:-4200}"
+    network_mode: host
     environment:
       APP_DOMAIN: ${DEV_DOMAIN:-localhost}
       APP_PROTOCOL: ${APP_PROTOCOL:-http}

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
+import { API_BASE } from '../app.tokens';
 import {
   AuthSessionResponse,
   AuthState,
@@ -10,13 +11,12 @@ import {
   DiscordCallbackRequest,
 } from './auth.models';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly apiBase = inject(API_BASE);
   private readonly authState = signal<AuthState>({ status: 'loading' });
 
   readonly state = this.authState.asReadonly();
@@ -30,7 +30,7 @@ export class AuthService {
 
     try {
       const response = await firstValueFrom(
-        this.http.get<AuthSessionResponse>(`${API_BASE_URL}/auth/session`, {
+        this.http.get<AuthSessionResponse>(`${this.apiBase}/auth/session`, {
           withCredentials: true,
         }),
       );
@@ -56,7 +56,7 @@ export class AuthService {
 
   async getDiscordAuthorizationUrl(): Promise<string> {
     const response = await firstValueFrom(
-      this.http.get<DiscordAuthUrlResponse>(`${API_BASE_URL}/auth/discord/url`, {
+      this.http.get<DiscordAuthUrlResponse>(`${this.apiBase}/auth/discord/url`, {
         withCredentials: true,
       }),
     );
@@ -76,7 +76,7 @@ export class AuthService {
     const body: DiscordCallbackRequest = { code, state };
 
     await firstValueFrom(
-      this.http.post<void>(`${API_BASE_URL}/auth/discord/callback`, body, {
+      this.http.post<void>(`${this.apiBase}/auth/discord/callback`, body, {
         withCredentials: true,
       }),
     );
@@ -98,7 +98,7 @@ export class AuthService {
     try {
       await firstValueFrom(
         this.http.post<void>(
-          `${API_BASE_URL}/auth/logout`,
+          `${this.apiBase}/auth/logout`,
           {},
           {
             withCredentials: true,
