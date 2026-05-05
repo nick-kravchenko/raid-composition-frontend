@@ -1,0 +1,133 @@
+<div class="container character-detail-page">
+  @if (unauthenticated()) {
+    <p class="character-detail-auth-message">Please sign in to view character details.</p>
+  } @else if (loading()) {
+    <p class="character-detail-loading">Loading...</p>
+  } @else if (notFound()) {
+    <p class="character-detail-not-found">Character not found.</p>
+  } @else if (loadError()) {
+    <p class="character-detail-error">{{ loadError() }}</p>
+  } @else if (character(); as char) {
+    <button class="btn btn-ghost character-detail-back" type="button" (click)="onBack()">&larr; Back</button>
+
+    <header class="character-detail-header">
+      <h1 class="character-detail-name">{{ char.name }}</h1>
+      <p class="character-detail-meta">{{ char.class | titlecase }} &middot; {{ char.spec | titlecase }}</p>
+      <p class="character-detail-meta">{{ char.role | titlecase }} &middot; {{ char.rank | titlecase }}</p>
+      <p class="character-detail-meta">{{ char.server }} &middot; {{ char.region | uppercase }}</p>
+    </header>
+
+    @if (char.battlenet; as bnet) {
+      <section class="character-detail-bnet">
+        <h2 class="character-detail-section-title">Battle.net</h2>
+
+        @if (bnet.avatar_url) {
+          <img class="character-detail-bnet-avatar" [src]="bnet.avatar_url" [alt]="char.name + ' avatar'" />
+        }
+
+        <dl class="character-detail-stat-list">
+          <div class="character-detail-stat-row">
+            <dt>Level</dt>
+            <dd>{{ bnet.level ?? 'Unknown' }}</dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Item Level</dt>
+            <dd>{{ bnet.equipped_item_level ?? 'Unknown' }}</dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Active Spec</dt>
+            <dd>{{ bnet.active_spec_name ?? 'Unknown' }}</dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Faction</dt>
+            <dd>{{ bnet.faction ?? 'Unknown' }}</dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Fetched</dt>
+            <dd>{{ bnet.fetched_at ? (bnet.fetched_at | date:'medium') : 'Unknown' }}</dd>
+          </div>
+        </dl>
+
+        @if (bnet.error) {
+          <p class="character-detail-snapshot-error">{{ bnet.error }}</p>
+        }
+      </section>
+    }
+
+    <section class="character-detail-gear">
+      <h2 class="character-detail-section-title">Gear</h2>
+      <div class="character-detail-gear-list">
+        @for (item of character()?.warcraftlogs?.gear; track item.id) {
+          <div class="character-detail-gear-list-item">
+            <a [href]="getWowheadHref(item)" data-wh-icon-size="large"></a>
+          </div>
+        }
+      </div>
+    </section>
+
+    @if (char.warcraftlogs; as wcl) {
+      <section class="character-detail-wcl">
+        <h2 class="character-detail-section-title">
+          WarcraftLogs
+          @if (wcl.partial) {
+            <span class="character-detail-partial">(partial data)</span>
+          }
+        </h2>
+
+        <dl class="character-detail-stat-list">
+          <div class="character-detail-stat-row">
+            <dt>Best Average</dt>
+            <dd [class]="parseColorClass(wcl.best_performance_average)">
+              {{ wcl.best_performance_average === null ? 'Unknown' : (wcl.best_performance_average | number:'1.1-1') }}
+            </dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Median Average</dt>
+            <dd [class]="parseColorClass(wcl.median_performance_average)">
+              {{ wcl.median_performance_average === null ? 'Unknown' : (wcl.median_performance_average | number:'1.1-1') }}
+            </dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Total Kills</dt>
+            <dd>{{ wcl.total_kills }}</dd>
+          </div>
+          <div class="character-detail-stat-row">
+            <dt>Fetched</dt>
+            <dd>{{ wcl.fetched_at ? (wcl.fetched_at | date:'medium') : 'Unknown' }}</dd>
+          </div>
+        </dl>
+
+        @if (wcl.error) {
+          <p class="character-detail-snapshot-error">{{ wcl.error }}</p>
+        }
+
+        <section class="character-detail-rankings">
+          <h3 class="character-detail-rankings-title">Rankings</h3>
+          <p class="character-detail-rankings-text">Per-boss rankings coming soon.</p>
+        </section>
+      </section>
+    }
+
+    <div class="character-detail-refresh-row">
+      <button class="btn btn-primary" type="button" [disabled]="refreshingBNet()" (click)="onRefreshBNet()">
+        @if (refreshingBNet()) {
+          Refreshing...
+        } @else {
+          Refresh BNet Data
+        }
+      </button>
+
+      <button class="btn btn-ghost" type="button" [disabled]="refreshingWcl()" (click)="onRefreshWcl()">
+        @if (refreshingWcl()) {
+          Refreshing...
+        } @else {
+          Refresh WCL Data
+        }
+      </button>
+    </div>
+
+    @if (refreshError()) {
+      <p class="character-detail-refresh-error">{{ refreshError() }}</p>
+    }
+  }
+</div>

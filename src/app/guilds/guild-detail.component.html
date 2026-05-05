@@ -88,5 +88,29 @@
         </ul>
       }
     </section>
+
+    <section class="guild-detail-characters">
+      <h2 class="guild-detail-section-title">Characters</h2>
+
+      @if (characters().length === 0) {
+        <p class="guild-detail-empty">No characters found.</p>
+      } @else {
+        @for (group of groupedByClass(); track group.className) {
+          <h3 class="guild-detail-character-class-heading">{{ group.className }}</h3>
+          <ul class="guild-detail-character-list">
+            @for (character of group.characters; track character.id) {
+              <li>
+                <a class="guild-detail-character-row" [routerLink]="['/characters', character.id]">
+                  <span class="guild-detail-character-class">{{ character.class }}</span>
+                  <span class="guild-detail-character-spec">{{ character.spec }}</span>
+                  <span class="guild-detail-character-name">{{ character.name }}</span>
+                  <span class="guild-detail-character-rank">{{ character.rank }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </section>
   }
 </div>

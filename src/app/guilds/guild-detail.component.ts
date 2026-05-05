@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
-import { Guild, GuildMember } from '../guild.models';
+import { Character, Guild, GuildMember } from '../guild.models';
 import { GuildService } from '../guild.service';
 
 @Component({
@@ -24,6 +24,7 @@ export class GuildDetailComponent implements OnInit {
 
   guild = signal<Guild | null>(null);
   members = signal<GuildMember[]>([]);
+  characters = signal<Character[]>([]);
   loadError = signal<string | null>(null);
   inviteUrl = signal<string | null>(null);
   generatingInvite = signal(false);
@@ -33,6 +34,22 @@ export class GuildDetailComponent implements OnInit {
   isAdmin = computed(() => this.guild()?.membership_role === 'admin');
   // After rotating, show the new URL; otherwise fall back to the guild's existing invite_url.
   displayInviteUrl = computed(() => this.inviteUrl() ?? (this.guild()?.invite_url || null));
+
+  groupedByClass = computed(() => {
+    const map = new Map<string, Character[]>();
+    for (const c of this.characters()) {
+      const key = c.class;
+      const group = map.get(key) ?? [];
+      group.push(c);
+      map.set(key, group);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([className, chars]) => ({
+        className,
+        characters: [...chars].sort((a, b) => a.spec.localeCompare(b.spec)),
+      }));
+  });
 
   async ngOnInit(): Promise<void> {
     if (this.authService.currentUser() === null) {
@@ -47,12 +64,14 @@ export class GuildDetailComponent implements OnInit {
     }
 
     try {
-      const [guild, members] = await Promise.all([
+      const [guild, members, characters] = await Promise.all([
         firstValueFrom(this.guildService.getGuild(id)),
         firstValueFrom(this.guildService.listMembers(id)),
+        firstValueFrom(this.guildService.listCharacters(id)),
       ]);
       this.guild.set(guild);
       this.members.set(members);
+      this.characters.set(characters);
     } catch {
       this.loadError.set('Failed to load guild. Please try again.');
     }

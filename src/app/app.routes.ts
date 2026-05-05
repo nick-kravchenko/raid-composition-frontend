@@ -15,6 +15,7 @@ export const routes: Routes = [
       { path: 'guilds', loadComponent: () => import('./guilds/guilds.component').then(m => m.GuildsComponent) },
       { path: 'guilds/:id', loadComponent: () => import('./guilds/guild-detail.component').then(m => m.GuildDetailComponent) },
       { path: 'guild-invites/:code', loadComponent: () => import('./guild-invites/accept-invite.component').then(m => m.AcceptInviteComponent) },
+      { path: 'characters/:id', loadComponent: () => import('./characters/character-detail.component').then(m => m.CharacterDetailComponent) },
     ],
   },
 ];

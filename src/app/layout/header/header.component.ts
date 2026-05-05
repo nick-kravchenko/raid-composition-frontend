@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
@@ -12,6 +12,15 @@ import { SafeUser } from '../../auth/auth.models';
 })
 export class HeaderComponent {
   private readonly auth = inject(AuthService);
+  private readonly el = inject(ElementRef);
+
+  @HostListener('document:click', ['$event.target'])
+  onDocumentClick(target: EventTarget | null): void {
+    if (!this.el.nativeElement.contains(target)) {
+      this.isMenuOpen.set(false);
+      this.isUserMenuOpen.set(false);
+    }
+  }
 
   isMenuOpen = signal(false);
   isUserMenuOpen = signal(false);

@@ -73,6 +73,7 @@
 .guild-detail-invite-url {
   display: block;
   padding: 10px 14px;
+  margin: 0 0 14px;
   background-color: var(--bg-elevated);
   border: 1px solid var(--border-default);
   border-radius: 6px;
@@ -95,8 +96,8 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
@@ -150,5 +151,76 @@
 .guild-detail-member-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+.guild-detail-characters {
+  margin-top: 40px;
+}
+
+.guild-detail-character-class-heading {
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  margin: 20px 0 8px;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.guild-detail-character-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.guild-detail-character-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    border-color: var(--accent);
+  }
+}
+
+.guild-detail-character-class {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.guild-detail-character-spec {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+.guild-detail-character-name {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guild-detail-character-rank {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: capitalize;
   flex-shrink: 0;
 }

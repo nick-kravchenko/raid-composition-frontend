@@ -5,6 +5,8 @@ import { map } from 'rxjs/operators';
 
 import { API_BASE } from './app.tokens';
 import {
+  Character,
+  CharactersResponse,
   CreateGuildPayload,
   Guild,
   GuildInvite,
@@ -42,6 +44,12 @@ export class GuildService {
     return this.http
       .get<GuildMembersResponse>(`${this.apiBase}/guilds/${id}/members`, { withCredentials: true })
       .pipe(map((res) => res.members));
+  }
+
+  listCharacters(id: string): Observable<Character[]> {
+    return this.http
+      .get<CharactersResponse>(`${this.apiBase}/guilds/${id}/characters`, { withCredentials: true })
+      .pipe(map((res) => res.characters));
   }
 
   createInvite(guildId: string): Observable<GuildInvite> {
