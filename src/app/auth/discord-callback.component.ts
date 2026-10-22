@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 
@@ -21,6 +21,7 @@ type CallbackStatus = 'pending' | 'error';
       }
     </main>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .auth-callback {

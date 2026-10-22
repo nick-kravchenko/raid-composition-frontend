@@ -1,5 +1,13 @@
 import { TitleCasePipe, UpperCasePipe, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
@@ -12,6 +20,7 @@ import { GuildService } from '../guild.service';
   standalone: true,
   imports: [RouterLink, TitleCasePipe, UpperCasePipe],
   templateUrl: './guild-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './guild-detail.component.scss',
 })
 export class GuildDetailComponent implements OnInit {
@@ -98,9 +107,7 @@ export class GuildDetailComponent implements OnInit {
     this.promotingUserId.set(userId);
     try {
       await firstValueFrom(this.guildService.promoteMember(id, userId, role));
-      this.members.update((list) =>
-        list.map((m) => (m.user_id === userId ? { ...m, role } : m)),
-      );
+      this.members.update((list) => list.map((m) => (m.user_id === userId ? { ...m, role } : m)));
     } finally {
       this.promotingUserId.set(null);
     }

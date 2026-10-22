@@ -1,4 +1,4 @@
-import { Component, afterNextRender, inject, signal } from '@angular/core';
+import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, filter, take } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -27,6 +27,7 @@ type AcceptInviteStatus = 'loading' | 'success' | 'error' | 'needs-auth';
       }
     </main>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .accept-invite {

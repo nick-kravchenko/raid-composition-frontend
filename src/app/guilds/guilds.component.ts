@@ -1,16 +1,23 @@
 import { TitleCasePipe, UpperCasePipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 import { GuildService } from '../guild.service';
-import { Guild, CreateGuildPayload, GuildRegion, GuildFaction, GuildGameVersion } from '../guild.models';
+import {
+  Guild,
+  CreateGuildPayload,
+  GuildRegion,
+  GuildFaction,
+  GuildGameVersion,
+} from '../guild.models';
 
 @Component({
   selector: 'rc-guilds',
   imports: [RouterLink, TitleCasePipe, UpperCasePipe],
   templateUrl: './guilds.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './guilds.component.scss',
 })
 export class GuildsComponent implements OnInit {

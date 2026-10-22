@@ -1,4 +1,11 @@
-import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
@@ -8,6 +15,7 @@ import { SafeUser } from '../../auth/auth.models';
   selector: 'rc-header',
   imports: [RouterLink],
   templateUrl: './header.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './header/header.component';
 import { FooterComponent } from './footer/footer.component';
@@ -7,6 +7,7 @@ import { FooterComponent } from './footer/footer.component';
   selector: 'rc-layout',
   imports: [RouterOutlet, HeaderComponent, FooterComponent],
   templateUrl: './layout.component.html',
-  styleUrl: './layout.component.scss'
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: './layout.component.scss',
 })
 export class LayoutComponent {}

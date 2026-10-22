@@ -1,6 +1,19 @@
-import { DatePipe, DecimalPipe, TitleCasePipe, UpperCasePipe, isPlatformBrowser } from '@angular/common';
+import {
+  DatePipe,
+  DecimalPipe,
+  TitleCasePipe,
+  UpperCasePipe,
+  isPlatformBrowser,
+} from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
@@ -35,6 +48,7 @@ const GEAR_SLOT_NAMES: Record<string, number> = {
   standalone: true,
   imports: [TitleCasePipe, UpperCasePipe, DecimalPipe, DatePipe],
   templateUrl: './character-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './character-detail.component.scss',
 })
 export class CharacterDetailComponent implements OnInit {
@@ -172,7 +186,9 @@ export class CharacterDetailComponent implements OnInit {
   private refreshWowheadLinks(): void {
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => {
-        (window as unknown as { $WowheadPower?: { refreshLinks: () => void } }).$WowheadPower?.refreshLinks();
+        (
+          window as unknown as { $WowheadPower?: { refreshLinks: () => void } }
+        ).$WowheadPower?.refreshLinks();
       }, 0);
     }
   }
