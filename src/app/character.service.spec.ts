@@ -33,7 +33,7 @@ const stubCharacter: CharacterDetail = {
     fetched_at: '2026-05-01T00:00:00Z',
   },
   warcraftlogs: {
-    gear: [{ id: 12345, slot: 1, permanentEnchantID: null }],
+    gear: [{ id: 12345, slot: 1, permanentEnchant: null, gems: null }],
     best_performance_average: 87.3,
     median_performance_average: 72.1,
     total_kills: 42,

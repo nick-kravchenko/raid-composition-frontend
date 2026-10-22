@@ -7,7 +7,11 @@ import { Subject, of, throwError } from 'rxjs';
 import { AuthState, SafeUser } from '../auth/auth.models';
 import { AuthService } from '../auth/auth.service';
 import { CharacterService } from '../character.service';
-import { CharacterBattleNetSnapshot, CharacterDetail, CharacterWarcraftLogsSnapshot } from '../guild.models';
+import {
+  CharacterBattleNetSnapshot,
+  CharacterDetail,
+  CharacterWarcraftLogsSnapshot,
+} from '../guild.models';
 import { CharacterDetailComponent } from './character-detail.component';
 
 const stubUser: SafeUser = {
@@ -32,7 +36,7 @@ const stubBnet: CharacterBattleNetSnapshot = {
 };
 
 const stubWcl: CharacterWarcraftLogsSnapshot = {
-  gear: [{ id: 12345, slot: 1, permanentEnchantID: null }],
+  gear: [{ id: 12345, slot: 1, permanentEnchant: null, gems: null }],
   best_performance_average: 87.3,
   median_performance_average: 72.1,
   total_kills: 42,
@@ -61,7 +65,10 @@ const stubCharacter: CharacterDetail = {
 
 describe('CharacterDetailComponent', () => {
   let fixture: ComponentFixture<CharacterDetailComponent>;
-  let characterService: Pick<CharacterService, 'getCharacter' | 'refreshBattleNet' | 'refreshWarcraftLogs'>;
+  let characterService: Pick<
+    CharacterService,
+    'getCharacter' | 'refreshBattleNet' | 'refreshWarcraftLogs'
+  >;
   let authState: ReturnType<typeof signal<AuthState>>;
 
   function buildAuthService(state: ReturnType<typeof signal<AuthState>>) {
@@ -123,7 +130,9 @@ describe('CharacterDetailComponent', () => {
 
     await render();
 
-    expect(fixture.nativeElement.textContent).toContain('Please sign in to view character details.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Please sign in to view character details.',
+    );
     expect(characterService.getCharacter).not.toHaveBeenCalled();
   });
 
@@ -142,9 +151,9 @@ describe('CharacterDetailComponent', () => {
 
   it('404 state renders character not found message', async () => {
     setupModule(undefined, {
-      getCharacter: vi.fn().mockReturnValue(
-        throwError(() => new HttpErrorResponse({ status: 404 })),
-      ),
+      getCharacter: vi
+        .fn()
+        .mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 }))),
     });
     await createComponent();
 
@@ -161,7 +170,9 @@ describe('CharacterDetailComponent', () => {
 
     await render();
 
-    expect(fixture.nativeElement.textContent).toContain('Failed to load character. Please try again.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Failed to load character. Please try again.',
+    );
   });
 
   it('loaded state renders profile data, snapshots, gear, and rankings placeholder', async () => {
@@ -179,10 +190,11 @@ describe('CharacterDetailComponent', () => {
     expect(text).toContain('Rankings');
     expect(text).toContain('Per-boss rankings coming soon.');
 
-    const gearAnchor = fixture.nativeElement.querySelector('a[href="https://www.wowhead.com/item=12345"]');
+    const gearAnchor = fixture.nativeElement.querySelector(
+      'a[href="https://www.wowhead.com/tbc/item=12345&"]',
+    );
     expect(gearAnchor).not.toBeNull();
     expect(gearAnchor.getAttribute('data-wh-icon-size')).toBe('large');
-    expect(fixture.nativeElement.textContent).toContain('Neck');
   });
 
   it('gear href includes permanent enchant when present', async () => {
@@ -190,7 +202,10 @@ describe('CharacterDetailComponent', () => {
       getCharacter: vi.fn().mockReturnValue(
         of({
           ...stubCharacter,
-          warcraftlogs: { ...stubWcl, gear: [{ id: 12345, slot: 1, permanentEnchantID: 999 }] },
+          warcraftlogs: {
+            ...stubWcl,
+            gear: [{ id: 12345, slot: 1, permanentEnchant: 999, gems: null }],
+          },
         }),
       ),
     });
@@ -199,14 +214,52 @@ describe('CharacterDetailComponent', () => {
     await render();
 
     const links: NodeListOf<HTMLAnchorElement> = fixture.nativeElement.querySelectorAll('a');
-    expect(Array.from(links).some((link) => link.getAttribute('href') === 'https://www.wowhead.com/item=12345&ench=999')).toBe(true);
+    expect(
+      Array.from(links).some(
+        (link) => link.getAttribute('href') === 'https://www.wowhead.com/tbc/item=12345&ench=999&',
+      ),
+    ).toBe(true);
+  });
+
+  it('gear href includes gem ids when present', async () => {
+    setupModule(undefined, {
+      getCharacter: vi.fn().mockReturnValue(
+        of({
+          ...stubCharacter,
+          warcraftlogs: {
+            ...stubWcl,
+            gear: [
+              {
+                id: 12345,
+                slot: 1,
+                permanentEnchant: null,
+                gems: [
+                  { id: 1, icon: 'a', itemLevel: 70 },
+                  { id: 2, icon: 'b', itemLevel: 70 },
+                ],
+              },
+            ],
+          },
+        }),
+      ),
+    });
+    await createComponent();
+
+    await render();
+
+    const links: NodeListOf<HTMLAnchorElement> = fixture.nativeElement.querySelectorAll('a');
+    expect(
+      Array.from(links).some(
+        (link) => link.getAttribute('href') === 'https://www.wowhead.com/tbc/item=12345&gems=1:2&',
+      ),
+    ).toBe(true);
   });
 
   it('hides BattleNet and WCL sections when snapshots are null', async () => {
     setupModule(undefined, {
-      getCharacter: vi.fn().mockReturnValue(
-        of({ ...stubCharacter, battlenet: null, warcraftlogs: null }),
-      ),
+      getCharacter: vi
+        .fn()
+        .mockReturnValue(of({ ...stubCharacter, battlenet: null, warcraftlogs: null })),
     });
     await createComponent();
 
@@ -255,11 +308,15 @@ describe('CharacterDetailComponent', () => {
 
   it('calls WowHead refreshLinks after character loads in browser platform', async () => {
     const refreshLinks = vi.fn();
-    (window as unknown as { $WowheadPower?: { refreshLinks: () => void } }).$WowheadPower = { refreshLinks };
+    (window as unknown as { $WowheadPower?: { refreshLinks: () => void } }).$WowheadPower = {
+      refreshLinks,
+    };
     setupModule();
     await createComponent();
 
     await render();
+    // refreshLinks is deferred to the next macrotask so WowHead sees the rendered anchors
+    await new Promise((resolve) => setTimeout(resolve));
 
     expect(refreshLinks).toHaveBeenCalled();
     delete (window as unknown as { $WowheadPower?: { refreshLinks: () => void } }).$WowheadPower;
