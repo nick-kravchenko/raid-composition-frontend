@@ -1,6 +1,6 @@
 # Pipeline for the self-hosted GitLab (root/raid-composition-frontend). GitHub remains a plain mirror.
 #
-# test     -> unit tests and production build on the pinned Node runtime
+# test     -> unit tests, production build and SSR smoke test on the pinned Node runtime
 # build    -> rootless BuildKit image; pushed as an immutable :<commit SHA> tag on the default branch only
 # promote  -> commits the new tag to root/homelab-infra; Argo CD reconciles the cluster.
 #             CI never talks to the Kubernetes API.
@@ -46,6 +46,7 @@ validate:
     - npm ci
     - npm test -- --watch=false
     - npm run build
+    - npm run test:ssr
 
 # Visible but non-blocking: production advisories are fixed as dependency updates.
 audit:
