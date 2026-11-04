@@ -30,6 +30,7 @@ import {
   Guild,
 } from '../guild.models';
 import { GuildService } from '../guild.service';
+import { IconComponent } from '../shared/icon.component';
 import { CharacterTileComponent } from './character-tile.component';
 import {
   Roster,
@@ -61,7 +62,7 @@ const COPIED_MS = 2000;
 
 @Component({
   selector: 'rc-composition-editor',
-  imports: [RouterLink, CharacterTileComponent],
+  imports: [RouterLink, CharacterTileComponent, IconComponent],
   templateUrl: './composition-editor.component.html',
   styleUrl: './composition-editor.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,7 +78,12 @@ export class CompositionEditorComponent implements OnInit, OnDestroy {
 
   readonly sizes = RAID_SIZES;
   readonly roleFilters = ROLE_FILTERS;
-  readonly roles = CHARACTER_ROLES;
+  readonly roles: { value: CharacterRole; label: string }[] = [
+    { value: 'tank', label: 'Tank' },
+    { value: 'melee', label: 'Melee' },
+    { value: 'ranged', label: 'Ranged' },
+    { value: 'heal', label: 'Healer' },
+  ];
 
   readonly guild = signal<Guild | null>(null);
   readonly composition = signal<Composition | null>(null);
@@ -91,10 +97,13 @@ export class CompositionEditorComponent implements OnInit, OnDestroy {
   readonly saveError = signal<string | null>(null);
   readonly highlightId = signal<string | null>(null);
   readonly copied = signal<string | null>(null);
+  readonly editingTitle = signal<number | null>(null);
+  readonly confirmation = signal<{ raid: number; action: 'clear' | 'remove' } | null>(null);
   readonly rankFilter = signal<CharacterRank | ''>('');
   readonly roleFilterKeys = signal<ReadonlySet<string>>(new Set());
 
   private readonly raidGroups = viewChild<ElementRef<HTMLElement>>('raidGroups');
+  private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
   private drag: DragSource | null = null;
   private revision = 0;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -251,16 +260,20 @@ export class CompositionEditorComponent implements OnInit, OnDestroy {
     if (source) this.apply(moveToBench(this.raids(), raid, source.id));
   }
 
-  onClearRaid(index: number): void {
-    if (window.confirm('Are you sure you want to clear this raid?')) {
-      this.apply(clearRaid(this.raids(), index));
-    }
+  onConfirm(): void {
+    const confirmation = this.confirmation();
+    this.confirmation.set(null);
+    if (!confirmation) return;
+    this.apply(
+      confirmation.action === 'clear'
+        ? clearRaid(this.raids(), confirmation.raid)
+        : this.raids().filter((_, i) => i !== confirmation.raid),
+    );
   }
 
-  onRemoveRaid(index: number): void {
-    if (window.confirm('Are you sure you want to remove this raid completely?')) {
-      this.apply(this.raids().filter((_, i) => i !== index));
-    }
+  startTitleEdit(index: number): void {
+    this.editingTitle.set(index);
+    setTimeout(() => this.titleInput()?.nativeElement.focus());
   }
 
   onAddRaid(): void {
@@ -284,28 +297,28 @@ export class CompositionEditorComponent implements OnInit, OnDestroy {
 
   // Raid tools
 
-  onCopyMrt(raid: CompositionRaid): Promise<void> {
-    return this.copyText(mrtExport(raid, this.roster()), 'mrt');
+  onCopyMrt(raid: CompositionRaid, index: number): Promise<void> {
+    return this.copyText(mrtExport(raid, this.roster()), `mrt-${index}`);
   }
 
-  onCopyPings(raid: CompositionRaid): Promise<void> {
+  onCopyPings(raid: CompositionRaid, index: number): Promise<void> {
     const userId = this.authService.currentUser()?.id;
-    return this.copyText(discordPings(raid, this.roster(), userId), 'pings');
+    return this.copyText(discordPings(raid, this.roster(), userId), `pings-${index}`);
   }
 
   onCopyLink(): Promise<void> {
     return this.copyText(window.location.href, 'link');
   }
 
-  async onCopyImage(element?: HTMLElement): Promise<void> {
+  async onCopyImage(element?: HTMLElement, key = 'image'): Promise<void> {
     const target = element ?? this.raidGroups()?.nativeElement;
     if (!target) return;
     const { default: html2canvas } = await import('html2canvas-pro');
-    const canvas = await html2canvas(target, { backgroundColor: '#17171f' });
+    const canvas = await html2canvas(target, { backgroundColor: '#404040' });
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
     if (blob) {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      this.flashCopied('image');
+      this.flashCopied(key);
     }
   }
 

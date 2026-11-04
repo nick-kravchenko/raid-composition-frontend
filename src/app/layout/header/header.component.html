@@ -1,6 +1,8 @@
 <header class="header">
   <div class="container header-inner">
-    <a class="logo" routerLink="/">RaidComp</a>
+    <a class="logo" routerLink="/" aria-label="RaidComp home">
+      <img class="logo-image" src="assets/images/logo.png" alt="" />
+    </a>
 
     <nav class="nav" [class.nav--open]="isMenuOpen()">
       <a class="nav-link" routerLink="/guilds">Guilds</a>

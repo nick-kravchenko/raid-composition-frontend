@@ -141,15 +141,27 @@ export interface RoleFilterOption {
   icon: string;
 }
 
-/** One toggle per class and role, using the first spec of that role as its icon. */
-export const ROLE_FILTERS: RoleFilterOption[] = WOW_CLASSES.flatMap((option) => {
-  const seen = new Set<CharacterRole>();
-  return option.specs
-    .filter((spec) => (seen.has(spec.role) ? false : (seen.add(spec.role), true)))
-    .map((spec) => ({
-      key: `${option.id}_${spec.role}`,
-      classId: option.id,
-      role: spec.role,
-      icon: spec.icon,
-    }));
-});
+function roleFilter(classId: string, role: CharacterRole, icon: string): RoleFilterOption {
+  return { key: `${classId}_${role}`, classId, role, icon };
+}
+
+export const ROLE_FILTERS: RoleFilterOption[] = [
+  roleFilter('druid', 'heal', 'spell_nature_healingtouch.jpg'),
+  roleFilter('druid', 'melee', 'ability_druid_catform.jpg'),
+  roleFilter('druid', 'ranged', 'spell_nature_starfall.jpg'),
+  roleFilter('druid', 'tank', 'ability_racial_bearform.jpg'),
+  roleFilter('hunter', 'ranged', 'class_hunter.jpg'),
+  roleFilter('mage', 'ranged', 'class_mage.jpg'),
+  roleFilter('paladin', 'heal', 'spell_holy_holybolt.jpg'),
+  roleFilter('paladin', 'melee', 'spell_holy_auraoflight.jpg'),
+  roleFilter('paladin', 'tank', 'spell_holy_devotionaura.jpg'),
+  roleFilter('priest', 'heal', 'spell_holy_guardianspirit.jpg'),
+  roleFilter('priest', 'ranged', 'spell_shadow_shadowwordpain.jpg'),
+  roleFilter('rogue', 'melee', 'class_rogue.jpg'),
+  roleFilter('shaman', 'heal', 'spell_nature_magicimmunity.jpg'),
+  roleFilter('shaman', 'melee', 'spell_nature_lightningshield.jpg'),
+  roleFilter('shaman', 'ranged', 'spell_nature_lightning.jpg'),
+  roleFilter('warlock', 'ranged', 'classicon_warlock.jpg'),
+  roleFilter('warrior', 'melee', 'ability_warrior_innerrage.jpg'),
+  roleFilter('warrior', 'tank', 'ability_warrior_defensivestance.jpg'),
+];

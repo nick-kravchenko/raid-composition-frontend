@@ -1,4 +1,4 @@
-<div class="editor-page">
+<div class="editor">
   @if (unauthenticated()) {
     <p class="editor-message">Please sign in to view this composition.</p>
   } @else if (loadError()) {
@@ -21,26 +21,17 @@
       } @else {
         <h1 class="editor-name">{{ name() }}</h1>
       }
-      <span class="editor-version">{{ versionLabel() }}</span>
+      <span class="editor-muted">{{ versionLabel() }}</span>
       @if (canEdit()) {
-        <span class="editor-status" [class.editor-status--bad]="saveStatus() === 'error' || saveStatus() === 'conflict'">
+        <span class="editor-muted" [class.editor-message--error]="saveStatus() === 'error' || saveStatus() === 'conflict'">
           @switch (saveStatus()) {
             @case ('saved') { Saved }
             @case ('saving') { Saving&hellip; }
             @case ('unsaved') { Unsaved changes }
-            @case ('conflict') { Not saved }
-            @case ('error') { Not saved }
+            @default { Not saved }
           }
         </span>
       }
-      <div class="editor-actions">
-        <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyImage()">
-          {{ copied() === 'image' ? 'Copied' : 'Copy image' }}
-        </button>
-        <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyLink()">
-          {{ copied() === 'link' ? 'Copied' : 'Copy link' }}
-        </button>
-      </div>
     </header>
 
     @if (saveError()) {
@@ -52,11 +43,11 @@
       </p>
     }
 
-    <div class="editor-body">
+    <div class="editor-body" [class.editor-body--readonly]="!canEdit()">
       @if (canEdit()) {
         <aside class="editor-sidebar">
           <label>
-            Raid size
+            Raid Size
             <select [value]="raidSize()" (change)="onRaidSizeChange(+$any($event.target).value)">
               @for (size of sizes; track size) {
                 <option [value]="size" [selected]="size === raidSize()">{{ size }} man</option>
@@ -76,7 +67,8 @@
               <button
                 type="button"
                 class="editor-role-filter"
-                [class.editor-role-filter--off]="!roleFilterActive(option)"
+                [class.editor-role-filter--on]="roleFilterActive(option)"
+                [style.background]="'var(--class-' + option.classId + ')'"
                 [attr.aria-pressed]="roleFilterKeys().has(option.key)"
                 [attr.aria-label]="option.classId + ' ' + option.role"
                 [title]="option.classId + ' ' + option.role"
@@ -99,7 +91,7 @@
                 />
               </li>
             } @empty {
-              <li class="editor-roster-empty">No characters available.</li>
+              <li class="editor-muted">No characters available.</li>
             }
           </ul>
         </aside>
@@ -109,43 +101,86 @@
         <div #raidGroups class="editor-raids">
           @for (raid of raids(); track $index; let raidIndex = $index) {
             <article #raidEl class="editor-raid">
+              @if (confirmation()?.raid === raidIndex) {
+                <div class="editor-modal" data-html2canvas-ignore="true">
+                  <p>
+                    {{ confirmation()?.action === 'clear'
+                      ? 'Are you sure you want to clear this raid?'
+                      : 'Are you sure you want to remove this raid completely?' }}
+                  </p>
+                  <div>
+                    <button class="btn btn-ghost btn--lg" type="button" (click)="onConfirm()">
+                      {{ confirmation()?.action === 'clear' ? 'Yes, clear it' : 'Yes, remove it' }}
+                    </button>
+                    <button class="btn btn-ghost btn--lg" type="button" (click)="confirmation.set(null)">
+                      No, I changed my mind
+                    </button>
+                  </div>
+                </div>
+              }
+
               <header class="editor-raid-header">
-                @if (canEdit()) {
-                  <input
-                    class="editor-raid-title"
-                    type="text"
-                    maxlength="100"
-                    aria-label="Raid title"
-                    [value]="raid.title"
-                    (input)="onTitleChange(raidIndex, $any($event.target).value)"
-                  />
-                } @else {
-                  <h2 class="editor-raid-title">{{ raid.title }}</h2>
-                }
-                <span class="editor-counts">
+                <div class="editor-tools" data-html2canvas-ignore="true">
+                  <button type="button" title="MRT export" aria-label="MRT export" (click)="onCopyMrt(raid, raidIndex)">
+                    <rc-icon [name]="copied() === 'mrt-' + raidIndex ? 'check' : 'export'" />
+                  </button>
+                  <button type="button" title="Screenshot" aria-label="Screenshot" (click)="onCopyImage(raidEl, 'image-' + raidIndex)">
+                    <rc-icon [name]="copied() === 'image-' + raidIndex ? 'check' : 'camera'" />
+                  </button>
+                  <button type="button" title="Discord pings" aria-label="Discord pings" (click)="onCopyPings(raid, raidIndex)">
+                    <rc-icon [name]="copied() === 'pings-' + raidIndex ? 'check' : 'discord'" />
+                  </button>
+                </div>
+
+                <h3 class="editor-raid-summary">
+                  @if (canEdit() && editingTitle() === raidIndex) {
+                    <input
+                      #titleInput
+                      class="editor-raid-title"
+                      type="text"
+                      maxlength="100"
+                      aria-label="Raid title"
+                      [value]="raid.title"
+                      (input)="onTitleChange(raidIndex, $any($event.target).value)"
+                      (blur)="editingTitle.set(null)"
+                      (keydown.enter)="editingTitle.set(null)"
+                    />
+                  } @else {
+                    @if (canEdit()) {
+                      <button
+                        class="editor-title-edit"
+                        type="button"
+                        title="Edit title"
+                        aria-label="Edit title"
+                        data-html2canvas-ignore="true"
+                        (click)="startTitleEdit(raidIndex)"
+                      >
+                        <rc-icon name="pencil" />
+                      </button>
+                    }
+                    <span class="editor-raid-title">{{ raid.title }}</span>
+                  }
                   @for (role of roles; track role.value) {
-                    <span [title]="role.label">
-                      <img [src]="'assets/icons/icon_' + role.value + '.png'" [alt]="role.label" />
+                    <span class="editor-count" [title]="role.label">
+                      <img [src]="'assets/icons/icon_' + role.value + '.png'" width="24" height="24" [alt]="role.label" />
                       {{ roleCount(raid, role.value) }}
                     </span>
                   }
-                  <span title="Alts / mains">
-                    [<span class="editor-alt">{{ rankCount(raid, 'alt') }}</span>/<span class="editor-main-count">{{ rankCount(raid, 'main') }}</span>]
+                  <span class="editor-ratio" title="Alts / mains">
+                    [<span class="editor-alt">{{ rankCount(raid, 'alt') }}</span>/<span class="editor-mains">{{ rankCount(raid, 'main') }}</span>]
                   </span>
-                </span>
-                <div class="editor-raid-tools" data-html2canvas-ignore="true">
-                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyMrt(raid)">
-                    {{ copied() === 'mrt' ? 'Copied' : 'MRT' }}
-                  </button>
-                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyPings(raid)">
-                    {{ copied() === 'pings' ? 'Copied' : 'Pings' }}
-                  </button>
-                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyImage(raidEl)">Image</button>
-                  @if (canEdit()) {
-                    <button class="btn btn-ghost btn--sm" type="button" (click)="onClearRaid(raidIndex)">Clear</button>
-                    <button class="btn btn-ghost btn--sm" type="button" (click)="onRemoveRaid(raidIndex)">Remove</button>
-                  }
-                </div>
+                </h3>
+
+                @if (canEdit()) {
+                  <div class="editor-tools" data-html2canvas-ignore="true">
+                    <button type="button" title="Clear raid" aria-label="Clear raid" (click)="confirmation.set({ raid: raidIndex, action: 'clear' })">
+                      <rc-icon name="recycle" />
+                    </button>
+                    <button type="button" title="Remove raid" aria-label="Remove raid" (click)="confirmation.set({ raid: raidIndex, action: 'remove' })">
+                      <rc-icon name="trash" />
+                    </button>
+                  </div>
+                }
               </header>
 
               <div class="editor-groups">
@@ -167,42 +202,55 @@
                         (click)="onSlotClick(id)"
                       />
                     } @else {
-                      <rc-character-tile class="editor-tile--readonly" [character]="character(id)" />
+                      <rc-character-tile [character]="character(id)" />
                     }
                   }
                 }
               </div>
 
               <div
-                class="editor-groups editor-bench"
+                class="editor-bench"
                 (dragover)="$event.preventDefault()"
                 (drop)="onBenchDrop($event, raidIndex)"
               >
-                <span class="editor-group-label">BENCH</span>
-                @for (id of raid.bench; track id) {
-                  @if (canEdit()) {
-                    <rc-character-tile
-                      class="editor-tile"
-                      draggable="true"
-                      [character]="character(id)"
-                      (dragstart)="onDragStart({ kind: 'bench', raid: raidIndex, id })"
-                      (dragend)="onDragEnd()"
-                      (click)="onBenchClick(id)"
-                    />
-                  } @else {
-                    <rc-character-tile class="editor-tile--readonly" [character]="character(id)" />
+                <span class="editor-group-label editor-group-label--bench">BENCH</span>
+                <div class="editor-bench-slots">
+                  @for (id of raid.bench; track id) {
+                    @if (canEdit()) {
+                      <rc-character-tile
+                        class="editor-tile"
+                        draggable="true"
+                        [character]="character(id)"
+                        (dragstart)="onDragStart({ kind: 'bench', raid: raidIndex, id })"
+                        (dragend)="onDragEnd()"
+                        (click)="onBenchClick(id)"
+                      />
+                    } @else {
+                      <rc-character-tile [character]="character(id)" />
+                    }
                   }
-                }
-                @if (canEdit()) {
-                  <rc-character-tile class="editor-bench-drop" />
-                }
+                  @if (canEdit()) {
+                    <rc-character-tile class="editor-bench-drop" />
+                  }
+                </div>
               </div>
             </article>
           }
         </div>
-        @if (canEdit()) {
-          <button class="btn btn-primary editor-add-raid" type="button" (click)="onAddRaid()">Add raid</button>
-        }
+
+        <div class="editor-actions" data-html2canvas-ignore="true">
+          @if (canEdit()) {
+            <button class="editor-add" type="button" title="Add raid" aria-label="Add raid" (click)="onAddRaid()">
+              <rc-icon name="plus" />
+            </button>
+          }
+          <button type="button" title="Copy image" aria-label="Copy image" (click)="onCopyImage()">
+            <rc-icon [name]="copied() === 'image' ? 'check' : 'camera'" />
+          </button>
+          <button type="button" title="Copy link" aria-label="Copy link" (click)="onCopyLink()">
+            <rc-icon [name]="copied() === 'link' ? 'check' : 'share'" />
+          </button>
+        </div>
       </section>
     </div>
   }

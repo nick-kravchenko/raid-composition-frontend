@@ -151,9 +151,10 @@
               @for (character of group.characters; track character.id) {
                 <li class="guild-detail-character-item">
                   <a class="guild-detail-character-row" [routerLink]="['/characters', character.id]">
+                    <img [src]="'assets/icons/' + characterIcon(character)" width="28" height="28" alt="" />
                     <span class="guild-detail-character-class">{{ character.class }}</span>
                     <span class="guild-detail-character-spec">{{ character.spec }}</span>
-                    <span class="guild-detail-character-name">{{ character.name }}</span>
+                    <span class="guild-detail-character-name" [style.color]="'var(--class-' + character.class + ')'">{{ character.name }}</span>
                     <span class="guild-detail-character-rank">{{ character.rank }}</span>
                   </a>
                   @if (isLeader()) {

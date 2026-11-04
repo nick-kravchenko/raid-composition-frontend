@@ -10,10 +10,11 @@
 }
 
 body {
-  background-color: var(--bg-base);
+  background: #000 url('/assets/images/background.jpg') fixed;
+  background-size: cover;
   color: var(--text-primary);
-  font-family: 'Inter', Arial, sans-serif;
-  font-size: var(--text-base);
+  font-family: 'Open Sans', Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
@@ -31,4 +32,20 @@ button,
 select,
 textarea {
   font: inherit;
+}
+
+* {
+  &::-webkit-scrollbar {
+    width: 0.5em;
+    height: 0.5em;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #72767d;
+    border-radius: 0.25em;
+  }
 }

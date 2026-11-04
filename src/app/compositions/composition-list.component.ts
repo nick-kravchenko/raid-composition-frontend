@@ -105,7 +105,7 @@ import { CompositionService } from './composition.service';
   `,
   styles: `
     .compositions-page {
-      padding: 48px 0;
+      padding: 16px 0;
     }
     .compositions-back {
       display: inline-block;
@@ -200,18 +200,16 @@ export class CompositionListComponent implements OnInit {
     }
     try {
       const { guild, compositions } = await firstValueFrom(
-        this.guildService
-          .getGuild(this.guildId)
-          .pipe(
-            switchMap((guild) =>
-              guild.membership_role === 'applicant'
-                ? of({ guild, compositions: [] as Composition[] })
-                : forkJoin({
-                    guild: of(guild),
-                    compositions: this.compositionService.list(this.guildId),
-                  }),
-            ),
+        this.guildService.getGuild(this.guildId).pipe(
+          switchMap((guild) =>
+            guild.membership_role === 'applicant'
+              ? of({ guild, compositions: [] as Composition[] })
+              : forkJoin({
+                  guild: of(guild),
+                  compositions: this.compositionService.list(this.guildId),
+                }),
           ),
+        ),
       );
       if (guild.membership_role === 'applicant') {
         this.loadError.set('Compositions become available once a guild admin approves you.');

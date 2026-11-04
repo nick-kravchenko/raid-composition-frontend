@@ -151,7 +151,7 @@ describe('CompositionEditorComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.editor-sidebar')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Name-a');
-    expect(fixture.nativeElement.textContent).not.toContain('Add raid');
+    expect(fixture.nativeElement.querySelector('.editor-add')).toBeNull();
 
     component.onRosterClick('b');
     await vi.advanceTimersByTimeAsync(600);
@@ -164,11 +164,7 @@ describe('CompositionEditorComponent', () => {
     fixture.detectChanges();
 
     const article = fixture.nativeElement.querySelector('.editor-raid');
-    expect(
-      article.querySelectorAll('.editor-groups:not(.editor-bench) rc-character-tile'),
-    ).toHaveLength(size);
-    expect(
-      article.querySelectorAll('.editor-groups:not(.editor-bench) .editor-group-label'),
-    ).toHaveLength(size / 5);
+    expect(article.querySelectorAll('.editor-groups rc-character-tile')).toHaveLength(size);
+    expect(article.querySelectorAll('.editor-groups .editor-group-label')).toHaveLength(size / 5);
   });
 });

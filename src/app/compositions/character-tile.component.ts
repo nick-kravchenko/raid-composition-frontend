@@ -12,54 +12,74 @@ import { playerLabel } from './composition-editor';
       <span class="tile-rank" [class.tile-rank--alt]="c.rank === 'alt'"></span>
       <span class="tile-name" [style.color]="'var(--class-' + c.class + ')'">{{ c.name }}</span>
       @if (player(); as label) {
-        <span class="tile-player">{{ label }}</span>
+        <sup class="tile-player" data-html2canvas-ignore="true">{{ label }}</sup>
       }
     }
   `,
   styles: `
     :host {
       display: flex;
+      position: relative;
       align-items: center;
-      gap: 6px;
       min-width: 0;
-      height: 34px;
-      padding: 2px 8px 2px 2px;
-      border: 1px solid var(--border-default);
-      border-radius: 3px;
-      background: var(--bg-elevated);
-      font-size: var(--text-sm);
-      font-weight: var(--fw-bold);
+      height: 38px;
+      padding: 4px 12px 4px 4px;
+      background: #45494f;
+      border: 1px solid #383838;
+      border-radius: 2px;
+      cursor: default;
+      font-weight: bold;
       user-select: none;
       white-space: nowrap;
-      overflow: hidden;
+    }
+    :host(:hover) {
+      z-index: 2;
+    }
+    :host(:hover) .tile-player {
+      opacity: 1;
+      visibility: visible;
     }
     .tile-icon {
+      flex: none;
       width: 28px;
       height: 28px;
-      flex: none;
+      margin-right: 4px;
+      border: 1px solid #000;
     }
     .tile-rank {
-      width: 7px;
-      height: 7px;
       flex: none;
+      width: 8px;
+      height: 8px;
+      margin-right: 4px;
       border-radius: 50%;
-      background: var(--state-success);
+      background: green;
     }
     .tile-rank--alt {
-      background: var(--state-warning);
+      background: yellow;
     }
     .tile-name {
       overflow: hidden;
       text-overflow: ellipsis;
+      text-shadow:
+        -1px -1px 0 #0005,
+        1px -1px 0 #0005,
+        -1px 1px 0 #0005,
+        1px 1px 0 #0005;
     }
     .tile-player {
-      margin-left: auto;
-      padding-left: 4px;
-      overflow: hidden;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: var(--fw-normal, 400);
-      text-overflow: ellipsis;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      padding: 2px 4px;
+      border-radius: 2px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: 0.85em;
+      line-height: 1;
+      opacity: 0;
+      transform: translate(-50%, -100%);
+      transition: opacity 0.2s;
+      visibility: hidden;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

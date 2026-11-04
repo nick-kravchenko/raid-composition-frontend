@@ -12,7 +12,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
-import { GAME_VERSIONS } from '../game-data';
+import { GAME_VERSIONS, specIcon } from '../game-data';
 import { Character, GameVersion, Guild, GuildMember } from '../guild.models';
 import { GuildService } from '../guild.service';
 import { CharacterFormComponent } from './character-form.component';
@@ -214,6 +214,10 @@ export class GuildDetailComponent implements OnInit {
 
   memberName(member: GuildMember): string {
     return member.discord.global_name ?? member.discord.username ?? 'Discord user';
+  }
+
+  characterIcon(character: Character): string {
+    return specIcon(character.class, character.spec, character.role);
   }
 
   characterPlayer(character: Character): string | null {
