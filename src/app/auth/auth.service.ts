@@ -11,6 +11,8 @@ import {
   DiscordCallbackRequest,
 } from './auth.models';
 
+const POST_LOGIN_URL_KEY = 'rc.postLoginUrl';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -63,12 +65,26 @@ export class AuthService {
     return response.url;
   }
 
-  async beginDiscordLogin(): Promise<void> {
+  /** Starts login; `returnUrl` is where the callback sends the user afterwards. */
+  async beginDiscordLogin(returnUrl?: string): Promise<void> {
     const url = await this.getDiscordAuthorizationUrl();
 
     if (isPlatformBrowser(this.platformId)) {
+      if (returnUrl) {
+        sessionStorage.setItem(POST_LOGIN_URL_KEY, returnUrl);
+      }
       window.location.href = url;
     }
+  }
+
+  /** The page to open after login. Only same-site paths are honoured. */
+  consumePostLoginUrl(): string {
+    if (!isPlatformBrowser(this.platformId)) {
+      return '/';
+    }
+    const url = sessionStorage.getItem(POST_LOGIN_URL_KEY);
+    sessionStorage.removeItem(POST_LOGIN_URL_KEY);
+    return url?.startsWith('/') && !url.startsWith('//') ? url : '/';
   }
 
   async completeDiscordCallback(code: string, state: string): Promise<void> {

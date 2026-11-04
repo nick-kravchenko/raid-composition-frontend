@@ -12,13 +12,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
-import { Character, Guild, GuildMember } from '../guild.models';
+import { GAME_VERSIONS } from '../game-data';
+import { Character, GameVersion, Guild, GuildMember } from '../guild.models';
 import { GuildService } from '../guild.service';
+import { CharacterFormComponent } from './character-form.component';
 
 @Component({
   selector: 'rc-guild-detail',
   standalone: true,
-  imports: [RouterLink, TitleCasePipe, UpperCasePipe],
+  imports: [RouterLink, TitleCasePipe, UpperCasePipe, CharacterFormComponent],
   templateUrl: './guild-detail.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './guild-detail.component.scss',
@@ -39,15 +41,25 @@ export class GuildDetailComponent implements OnInit {
   generatingInvite = signal(false);
   promotingUserId = signal<string | null>(null);
   unauthenticated = signal(false);
+  readonly gameVersions = GAME_VERSIONS;
+  gameVersion = signal<GameVersion>('classicann');
+  actionError = signal<string | null>(null);
+  inviteCopied = signal(false);
+  showCharacterForm = signal(false);
+  editingCharacter = signal<Character | null>(null);
 
   isAdmin = computed(() => this.guild()?.membership_role === 'admin');
   isApplicant = computed(() => this.guild()?.membership_role === 'applicant');
+  isLeader = computed(() => {
+    const role = this.guild()?.membership_role;
+    return role === 'admin' || role === 'officer';
+  });
   // After rotating, show the new URL; otherwise fall back to the guild's existing invite_url.
   displayInviteUrl = computed(() => this.inviteUrl() ?? (this.guild()?.invite_url || null));
 
   groupedByClass = computed(() => {
     const map = new Map<string, Character[]>();
-    for (const c of this.characters()) {
+    for (const c of this.characters().filter((c) => c.game_version === this.gameVersion())) {
       const key = c.class;
       const group = map.get(key) ?? [];
       group.push(c);
@@ -107,6 +119,8 @@ export class GuildDetailComponent implements OnInit {
       const invite = await firstValueFrom(this.guildService.createInvite(id));
       const origin = isPlatformBrowser(this.platformId) ? window.location.origin : '';
       this.inviteUrl.set(origin + '/guild-invites/' + invite.code);
+    } catch {
+      this.actionError.set('Failed to create the invite. Please try again.');
     } finally {
       this.generatingInvite.set(false);
     }
@@ -120,8 +134,89 @@ export class GuildDetailComponent implements OnInit {
     try {
       await firstValueFrom(this.guildService.promoteMember(id, userId, role));
       this.members.update((list) => list.map((m) => (m.user_id === userId ? { ...m, role } : m)));
+    } catch {
+      this.actionError.set('Failed to promote the member. Please try again.');
     } finally {
       this.promotingUserId.set(null);
     }
+  }
+
+  async onRejectApplicant(member: GuildMember): Promise<void> {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id || !window.confirm('Reject this applicant? Characters bound to them become unbound.')) {
+      return;
+    }
+    this.actionError.set(null);
+    try {
+      await firstValueFrom(this.guildService.rejectApplicant(id, member.user_id));
+      this.members.update((list) => list.filter((m) => m.user_id !== member.user_id));
+      this.characters.update((list) =>
+        list.map((c) => (c.user_id === member.user_id ? { ...c, user_id: null, owner: null } : c)),
+      );
+    } catch {
+      this.actionError.set('Failed to reject the applicant. Please try again.');
+    }
+  }
+
+  async onCopyInvite(): Promise<void> {
+    const url = this.displayInviteUrl();
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    this.inviteCopied.set(true);
+    setTimeout(() => this.inviteCopied.set(false), 2000);
+  }
+
+  onAddCharacter(): void {
+    this.editingCharacter.set(null);
+    this.showCharacterForm.set(true);
+  }
+
+  onEditCharacter(character: Character): void {
+    this.editingCharacter.set(character);
+    this.showCharacterForm.set(true);
+  }
+
+  onCharacterSaved(saved: Character): void {
+    this.characters.update((list) =>
+      list.some((c) => c.id === saved.id)
+        ? list.map((c) => (c.id === saved.id ? saved : c))
+        : [...list, saved],
+    );
+    this.showCharacterForm.set(false);
+    this.editingCharacter.set(null);
+  }
+
+  onCharacterFormCancelled(): void {
+    this.showCharacterForm.set(false);
+    this.editingCharacter.set(null);
+  }
+
+  async onDeleteCharacter(character: Character): Promise<void> {
+    if (!window.confirm(`Remove ${character.name} from the roster?`)) return;
+    this.actionError.set(null);
+    try {
+      await firstValueFrom(this.guildService.deleteCharacter(character.id));
+      this.characters.update((list) => list.filter((c) => c.id !== character.id));
+    } catch {
+      this.actionError.set('Failed to remove the character. Please try again.');
+    }
+  }
+
+  async onBindCharacter(character: Character, userId: string): Promise<void> {
+    this.actionError.set(null);
+    try {
+      const bound = await firstValueFrom(this.guildService.bindCharacter(character.id, userId || null));
+      this.characters.update((list) => list.map((c) => (c.id === bound.id ? bound : c)));
+    } catch {
+      this.actionError.set(`Failed to update the owner of ${character.name}.`);
+    }
+  }
+
+  memberName(member: GuildMember): string {
+    return member.discord.global_name ?? member.discord.username ?? 'Discord user';
+  }
+
+  characterPlayer(character: Character): string | null {
+    return character.owner?.display_name ?? character.player_name;
   }
 }

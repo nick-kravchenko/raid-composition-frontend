@@ -97,12 +97,13 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 8px;
 }
 
 .guild-detail-member-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
@@ -150,8 +151,8 @@
 
 .guild-detail-member-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  flex-shrink: 0;
 }
 
 .guild-detail-characters {
@@ -174,7 +175,6 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
@@ -223,4 +223,33 @@
   color: var(--text-muted);
   text-transform: capitalize;
   flex-shrink: 0;
+}
+
+.guild-detail-section-header,
+.guild-detail-version-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  .guild-detail-section-title {
+    margin-right: auto;
+    margin-bottom: 0;
+  }
+}
+
+.guild-detail-character-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  > a {
+    flex: 1 1 280px;
+  }
+
+  select {
+    width: 200px;
+  }
 }

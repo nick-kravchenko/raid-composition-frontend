@@ -27,7 +27,6 @@ const stubGuild: Guild = {
   realm: 'Silvermoon',
   region: 'eu',
   faction: 'alliance',
-  game_version: 'classic',
   invite_url: 'http://localhost:4200/guild-invites/stub-code',
   created_at: '2026-05-01T00:00:00Z',
   updated_at: '2026-05-01T00:00:00Z',

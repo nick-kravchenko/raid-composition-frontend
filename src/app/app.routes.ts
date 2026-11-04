@@ -14,6 +14,8 @@ export const routes: Routes = [
       { path: 'style-demo', component: StyleDemoComponent },
       { path: 'guilds', loadComponent: () => import('./guilds/guilds.component').then(m => m.GuildsComponent) },
       { path: 'guilds/:id', loadComponent: () => import('./guilds/guild-detail.component').then(m => m.GuildDetailComponent) },
+      { path: 'guilds/:id/compositions', loadComponent: () => import('./compositions/composition-list.component').then(m => m.CompositionListComponent) },
+      { path: 'guilds/:id/compositions/:compositionId', loadComponent: () => import('./compositions/composition-editor.component').then(m => m.CompositionEditorComponent) },
       { path: 'guild-invites/:code', loadComponent: () => import('./guild-invites/accept-invite.component').then(m => m.AcceptInviteComponent) },
       { path: 'characters/:id', loadComponent: () => import('./characters/character-detail.component').then(m => m.CharacterDetailComponent) },
     ],

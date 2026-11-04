@@ -1,7 +1,7 @@
 export type GuildRole = 'applicant' | 'raider' | 'officer' | 'admin';
 export type GuildRegion = 'us' | 'eu' | 'kr' | 'tw' | 'cn';
 export type GuildFaction = 'alliance' | 'horde';
-export type GuildGameVersion = 'classic1x' | 'classic' | 'classicann';
+export type GameVersion = 'classicann' | 'forever';
 
 export interface Guild {
   id: string;
@@ -9,7 +9,6 @@ export interface Guild {
   realm: string;
   region: GuildRegion;
   faction: GuildFaction;
-  game_version: GuildGameVersion;
   invite_url: string;
   created_at: string;
   updated_at: string;
@@ -42,7 +41,6 @@ export interface CreateGuildPayload {
   realm: string;
   region: GuildRegion;
   faction: GuildFaction;
-  game_version: GuildGameVersion;
 }
 
 export interface GuildsResponse {
@@ -64,12 +62,22 @@ export interface GuildInviteResponse {
 export type CharacterRole = 'tank' | 'heal' | 'melee' | 'ranged';
 export type CharacterRank = 'main' | 'alt';
 
+export interface CharacterOwner {
+  discord_id: string;
+  display_name: string | null;
+}
+
 export interface Character {
   id: string;
-  user_id: string;
+  guild_id: string | null;
+  game_version: GameVersion;
+  user_id: string | null;
+  player_name: string | null;
+  owner: CharacterOwner | null;
+  can_manage: boolean;
   name: string;
   region: string;
-  server: string;
+  server: string | null;
   class: string;
   race: string;
   spec: string;
@@ -78,6 +86,44 @@ export interface Character {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+}
+
+export interface CharacterPayload {
+  name: string;
+  region: string;
+  server: string | null;
+  class: string;
+  race: string;
+  spec: string;
+  role: CharacterRole;
+  rank: CharacterRank;
+  player_name: string | null;
+}
+
+export interface CharacterLookup {
+  class: string | null;
+  race: string | null;
+  spec: string | null;
+  faction: string | null;
+  level: number | null;
+}
+
+export interface CompositionRaid {
+  title: string;
+  slots: (string | null)[];
+  bench: string[];
+}
+
+export interface Composition {
+  id: string;
+  guild_id: string;
+  game_version: GameVersion;
+  name: string;
+  raid_size: number;
+  raids: CompositionRaid[];
+  revision: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CharactersResponse {

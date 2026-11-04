@@ -6,6 +6,8 @@ import { map } from 'rxjs/operators';
 import { API_BASE } from './app.tokens';
 import {
   Character,
+  CharacterLookup,
+  CharacterPayload,
   CharactersResponse,
   CreateGuildPayload,
   Guild,
@@ -15,6 +17,7 @@ import {
   GuildMembersResponse,
   GuildResponse,
   GuildsResponse,
+  GameVersion,
 } from './guild.models';
 
 @Injectable({ providedIn: 'root' })
@@ -50,6 +53,56 @@ export class GuildService {
     return this.http
       .get<CharactersResponse>(`${this.apiBase}/guilds/${id}/characters`, { withCredentials: true })
       .pipe(map((res) => res.characters));
+  }
+
+  createCharacter(
+    guildId: string,
+    payload: CharacterPayload & { game_version: GameVersion },
+  ): Observable<Character> {
+    return this.http
+      .post<{ character: Character }>(`${this.apiBase}/guilds/${guildId}/characters`, payload, {
+        withCredentials: true,
+      })
+      .pipe(map((res) => res.character));
+  }
+
+  updateCharacter(id: string, payload: CharacterPayload): Observable<Character> {
+    return this.http
+      .put<{ character: Character }>(`${this.apiBase}/characters/${id}`, payload, {
+        withCredentials: true,
+      })
+      .pipe(map((res) => res.character));
+  }
+
+  deleteCharacter(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBase}/characters/${id}`, { withCredentials: true });
+  }
+
+  /** Binds a character to a guild member, or releases it when userId is null. */
+  bindCharacter(id: string, userId: string | null): Observable<Character> {
+    return this.http
+      .put<{ character: Character }>(
+        `${this.apiBase}/characters/${id}/owner`,
+        { user_id: userId },
+        { withCredentials: true },
+      )
+      .pipe(map((res) => res.character));
+  }
+
+  lookupCharacter(
+    guildId: string,
+    query: { name: string; server: string; region: string },
+  ): Observable<CharacterLookup> {
+    return this.http.get<CharacterLookup>(`${this.apiBase}/guilds/${guildId}/characters/lookup`, {
+      params: query,
+      withCredentials: true,
+    });
+  }
+
+  rejectApplicant(guildId: string, userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiBase}/guilds/${guildId}/members/${userId}`, {
+      withCredentials: true,
+    });
   }
 
   createInvite(guildId: string): Observable<GuildInvite> {

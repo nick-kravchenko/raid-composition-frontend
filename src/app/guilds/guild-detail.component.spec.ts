@@ -28,7 +28,6 @@ function makeGuild(role: Guild['membership_role']): Guild {
     realm: 'Silvermoon',
     region: 'eu',
     faction: 'alliance',
-    game_version: 'classic',
   invite_url: 'http://localhost:4200/guild-invites/stub-code',
     created_at: '2026-05-01T00:00:00Z',
     updated_at: '2026-05-01T00:00:00Z',
@@ -55,7 +54,12 @@ const stubInvite: GuildInvite = { guild_id: 'guild-1', code: 'abc123' };
 function makeCharacter(id: string, cls: string, spec: string): Character {
   return {
     id,
+    guild_id: 'guild-1',
+    game_version: 'classicann',
     user_id: 'user-1',
+    player_name: null,
+    owner: null,
+    can_manage: false,
     name: `Char-${id}`,
     region: 'eu',
     server: 'silvermoon',
@@ -140,6 +144,61 @@ describe('GuildDetailComponent', () => {
     expect(guildService.getGuild).not.toHaveBeenCalled();
     expect(guildService.listMembers).not.toHaveBeenCalled();
     expect(guildService.listCharacters).not.toHaveBeenCalled();
+  });
+
+  it('shows only the selected game version and keeps them apart', async () => {
+    setupModule({ status: 'authenticated', user: stubUser, session: {} as never }, 'raider', [], [
+      makeCharacter('tbc', 'warrior', 'Fury'),
+      { ...makeCharacter('frv', 'mage', 'Fire'), game_version: 'forever' },
+    ]);
+    await createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Char-tbc');
+    expect(fixture.nativeElement.textContent).not.toContain('Char-frv');
+
+    component.gameVersion.set('forever');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Char-frv');
+    expect(fixture.nativeElement.textContent).not.toContain('Char-tbc');
+  });
+
+  it('leaders can bind an unbound character to a member, raiders cannot', async () => {
+    const member = { ...stubMember, role: 'raider' as const };
+    const unbound = { ...makeCharacter('c1', 'warrior', 'Fury'), user_id: null, player_name: 'Lazykit' };
+    setupModule({ status: 'authenticated', user: stubUser, session: {} as never }, 'officer', [member], [unbound]);
+    (guildService as any).bindCharacter = vi
+      .fn()
+      .mockReturnValue(of({ ...unbound, user_id: member.user_id, player_name: null }));
+    await createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('.guild-detail-character-owner');
+    expect(select.options[select.selectedIndex].textContent).toContain('Unbound (Lazykit)');
+
+    select.value = member.user_id;
+    select.dispatchEvent(new Event('change'));
+    await fixture.whenStable();
+
+    expect((guildService as any).bindCharacter).toHaveBeenCalledWith('c1', member.user_id);
+    expect(component.characters()[0].user_id).toBe(member.user_id);
+  });
+
+  it('raiders see the owner as text instead of the bind control', async () => {
+    const unbound = { ...makeCharacter('c1', 'warrior', 'Fury'), user_id: null, player_name: 'Lazykit' };
+    setupModule({ status: 'authenticated', user: stubUser, session: {} as never }, 'raider', [], [unbound]);
+    await createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.guild-detail-character-owner')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Lazykit');
   });
 
   it('applicant sees a pending message and the roster is not requested', async () => {

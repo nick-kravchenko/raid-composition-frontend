@@ -10,7 +10,6 @@ import {
   CreateGuildPayload,
   GuildRegion,
   GuildFaction,
-  GuildGameVersion,
 } from '../guild.models';
 
 @Component({
@@ -34,7 +33,6 @@ export class GuildsComponent implements OnInit {
   formRealm = signal('');
   formRegion = signal<GuildRegion | ''>('');
   formFaction = signal<GuildFaction | ''>('');
-  formGameVersion = signal<GuildGameVersion | ''>('');
 
   async ngOnInit(): Promise<void> {
     if (this.authService.currentUser() === null) {
@@ -55,8 +53,7 @@ export class GuildsComponent implements OnInit {
       this.formName().trim() === '' ||
       this.formRealm().trim() === '' ||
       this.formRegion() === '' ||
-      this.formFaction() === '' ||
-      this.formGameVersion() === ''
+      this.formFaction() === ''
     );
   }
 
@@ -70,7 +67,6 @@ export class GuildsComponent implements OnInit {
       realm: this.formRealm().trim(),
       region: this.formRegion() as GuildRegion,
       faction: this.formFaction() as GuildFaction,
-      game_version: this.formGameVersion() as GuildGameVersion,
     };
 
     this.creating.set(true);
@@ -83,7 +79,6 @@ export class GuildsComponent implements OnInit {
       this.formRealm.set('');
       this.formRegion.set('');
       this.formFaction.set('');
-      this.formGameVersion.set('');
     } catch {
       this.createError.set('Failed to create guild. Please try again.');
     } finally {

@@ -26,7 +26,6 @@ const stubGuild: Guild = {
   realm: 'Silvermoon',
   region: 'eu',
   faction: 'alliance',
-  game_version: 'classic',
   invite_url: 'http://localhost:4200/guild-invites/stub-code',
   created_at: '2026-05-01T00:00:00Z',
   updated_at: '2026-05-01T00:00:00Z',
@@ -111,8 +110,7 @@ describe('GuildsComponent', () => {
     component.formRealm.set('Realm');
     component.formRegion.set('us');
     component.formFaction.set('horde');
-    component.formGameVersion.set('classic');
-
+    
     await component.onCreateGuild();
     fixture.detectChanges();
 
@@ -121,7 +119,6 @@ describe('GuildsComponent', () => {
       realm: 'Realm',
       region: 'us',
       faction: 'horde',
-      game_version: 'classic',
     });
     expect(component.guilds()).toContainEqual(newGuild);
   });
@@ -141,8 +138,7 @@ describe('GuildsComponent', () => {
     component.formRealm.set('Realm');
     component.formRegion.set('us');
     component.formFaction.set('horde');
-    component.formGameVersion.set('classic');
-
+    
     await component.onCreateGuild();
     fixture.detectChanges();
 

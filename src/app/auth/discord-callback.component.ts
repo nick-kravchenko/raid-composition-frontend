@@ -74,7 +74,7 @@ export class DiscordCallbackComponent {
 
     try {
       await this.auth.completeDiscordCallback(code, state);
-      await this.router.navigateByUrl('/');
+      await this.router.navigateByUrl(this.auth.consumePostLoginUrl());
     } catch {
       this.status.set('error');
       this.errorTitle.set('Discord sign-in failed');

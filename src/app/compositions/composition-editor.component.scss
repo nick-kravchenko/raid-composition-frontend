@@ -1,0 +1,189 @@
+.editor-page {
+  padding: 24px 16px 48px;
+}
+.editor-message {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+.editor-message--error,
+.editor-status--bad {
+  color: var(--state-error);
+}
+.editor-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  a {
+    color: var(--accent);
+    font-size: var(--text-sm);
+  }
+}
+.editor-name {
+  flex: 0 1 360px;
+  min-width: 200px;
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+}
+.editor-version,
+.editor-status {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+.editor-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.editor-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.editor-sidebar {
+  display: grid;
+  flex: 0 0 240px;
+  gap: 12px;
+  label {
+    display: grid;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+}
+.editor-role-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.editor-role-filter {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  background: none;
+  cursor: pointer;
+  img {
+    display: block;
+    width: 100%;
+  }
+}
+.editor-role-filter--off {
+  opacity: 0.3;
+}
+.editor-roster {
+  display: grid;
+  gap: 4px;
+  max-height: 70vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.editor-roster-empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.editor-main {
+  flex: 1;
+  min-width: 0;
+}
+.editor-raids {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.editor-raid {
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  overflow-x: auto;
+}
+.editor-raid-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.editor-raid-title {
+  width: 180px;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+}
+.editor-counts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  img {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+  }
+}
+.editor-alt {
+  color: var(--state-warning);
+}
+.editor-main-count {
+  color: var(--state-success);
+}
+.editor-raid-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+}
+.editor-groups {
+  display: grid;
+  grid-template-columns: 48px repeat(5, minmax(110px, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+.editor-bench {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-default);
+}
+.editor-bench > .editor-group-label:first-child {
+  grid-row: span 8;
+  align-self: start;
+}
+.editor-group-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+}
+.editor-tile {
+  cursor: pointer;
+}
+.editor-tile--highlight {
+  animation: editor-flash 0.5s ease-in-out 4;
+}
+.editor-bench-drop {
+  border-style: dashed;
+  background: none;
+}
+@keyframes editor-flash {
+  50% {
+    border-color: var(--state-error);
+    background: var(--state-error);
+  }
+}
+@media (max-width: 800px) {
+  .editor-body {
+    flex-direction: column;
+  }
+  .editor-sidebar {
+    flex: none;
+    width: 100%;
+  }
+  .editor-roster {
+    max-height: 40vh;
+  }
+}

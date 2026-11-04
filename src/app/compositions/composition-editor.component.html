@@ -1,0 +1,209 @@
+<div class="editor-page">
+  @if (unauthenticated()) {
+    <p class="editor-message">Please sign in to view this composition.</p>
+  } @else if (loadError()) {
+    <p class="editor-message editor-message--error">{{ loadError() }}</p>
+    <a [routerLink]="['/guilds', guildId, 'compositions']">Back to compositions</a>
+  } @else if (composition() === null) {
+    <p class="editor-message">Loading&hellip;</p>
+  } @else {
+    <header class="editor-header">
+      <a [routerLink]="['/guilds', guildId, 'compositions']">&larr; Compositions</a>
+      @if (canEdit()) {
+        <input
+          class="editor-name"
+          type="text"
+          maxlength="100"
+          aria-label="Composition name"
+          [value]="name()"
+          (input)="onNameChange($any($event.target).value)"
+        />
+      } @else {
+        <h1 class="editor-name">{{ name() }}</h1>
+      }
+      <span class="editor-version">{{ versionLabel() }}</span>
+      @if (canEdit()) {
+        <span class="editor-status" [class.editor-status--bad]="saveStatus() === 'error' || saveStatus() === 'conflict'">
+          @switch (saveStatus()) {
+            @case ('saved') { Saved }
+            @case ('saving') { Saving&hellip; }
+            @case ('unsaved') { Unsaved changes }
+            @case ('conflict') { Not saved }
+            @case ('error') { Not saved }
+          }
+        </span>
+      }
+      <div class="editor-actions">
+        <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyImage()">
+          {{ copied() === 'image' ? 'Copied' : 'Copy image' }}
+        </button>
+        <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyLink()">
+          {{ copied() === 'link' ? 'Copied' : 'Copy link' }}
+        </button>
+      </div>
+    </header>
+
+    @if (saveError()) {
+      <p class="editor-message editor-message--error" role="alert">
+        {{ saveError() }}
+        @if (saveStatus() === 'conflict') {
+          <button class="btn btn-primary btn--sm" type="button" (click)="load()">Reload</button>
+        }
+      </p>
+    }
+
+    <div class="editor-body">
+      @if (canEdit()) {
+        <aside class="editor-sidebar">
+          <label>
+            Raid size
+            <select [value]="raidSize()" (change)="onRaidSizeChange(+$any($event.target).value)">
+              @for (size of sizes; track size) {
+                <option [value]="size" [selected]="size === raidSize()">{{ size }} man</option>
+              }
+            </select>
+          </label>
+          <label>
+            Rank
+            <select [value]="rankFilter()" (change)="rankFilter.set($any($event.target).value)">
+              <option value="">All</option>
+              <option value="main">Main</option>
+              <option value="alt">Alt</option>
+            </select>
+          </label>
+          <div class="editor-role-filters">
+            @for (option of roleFilters; track option.key) {
+              <button
+                type="button"
+                class="editor-role-filter"
+                [class.editor-role-filter--off]="!roleFilterActive(option)"
+                [attr.aria-pressed]="roleFilterKeys().has(option.key)"
+                [attr.aria-label]="option.classId + ' ' + option.role"
+                [title]="option.classId + ' ' + option.role"
+                (click)="toggleRoleFilter(option)"
+              >
+                <img [src]="'assets/icons/' + option.icon" alt="" />
+              </button>
+            }
+          </div>
+          <ul class="editor-roster">
+            @for (c of availableCharacters(); track c.id) {
+              <li>
+                <rc-character-tile
+                  class="editor-tile"
+                  draggable="true"
+                  [character]="c"
+                  (dragstart)="onDragStart({ kind: 'roster', id: c.id })"
+                  (dragend)="onDragEnd()"
+                  (click)="onRosterClick(c.id)"
+                />
+              </li>
+            } @empty {
+              <li class="editor-roster-empty">No characters available.</li>
+            }
+          </ul>
+        </aside>
+      }
+
+      <section class="editor-main">
+        <div #raidGroups class="editor-raids">
+          @for (raid of raids(); track $index; let raidIndex = $index) {
+            <article #raidEl class="editor-raid">
+              <header class="editor-raid-header">
+                @if (canEdit()) {
+                  <input
+                    class="editor-raid-title"
+                    type="text"
+                    maxlength="100"
+                    aria-label="Raid title"
+                    [value]="raid.title"
+                    (input)="onTitleChange(raidIndex, $any($event.target).value)"
+                  />
+                } @else {
+                  <h2 class="editor-raid-title">{{ raid.title }}</h2>
+                }
+                <span class="editor-counts">
+                  @for (role of roles; track role.value) {
+                    <span [title]="role.label">
+                      <img [src]="'assets/icons/icon_' + role.value + '.png'" [alt]="role.label" />
+                      {{ roleCount(raid, role.value) }}
+                    </span>
+                  }
+                  <span title="Alts / mains">
+                    [<span class="editor-alt">{{ rankCount(raid, 'alt') }}</span>/<span class="editor-main-count">{{ rankCount(raid, 'main') }}</span>]
+                  </span>
+                </span>
+                <div class="editor-raid-tools" data-html2canvas-ignore="true">
+                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyMrt(raid)">
+                    {{ copied() === 'mrt' ? 'Copied' : 'MRT' }}
+                  </button>
+                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyPings(raid)">
+                    {{ copied() === 'pings' ? 'Copied' : 'Pings' }}
+                  </button>
+                  <button class="btn btn-ghost btn--sm" type="button" (click)="onCopyImage(raidEl)">Image</button>
+                  @if (canEdit()) {
+                    <button class="btn btn-ghost btn--sm" type="button" (click)="onClearRaid(raidIndex)">Clear</button>
+                    <button class="btn btn-ghost btn--sm" type="button" (click)="onRemoveRaid(raidIndex)">Remove</button>
+                  }
+                </div>
+              </header>
+
+              <div class="editor-groups">
+                @for (group of groupRows(raid); track group) {
+                  <span class="editor-group-label">G{{ group + 1 }}</span>
+                  @for (offset of [0, 1, 2, 3, 4]; track offset) {
+                    @let slot = group * 5 + offset;
+                    @let id = raid.slots[slot];
+                    @if (canEdit()) {
+                      <rc-character-tile
+                        class="editor-tile"
+                        [class.editor-tile--highlight]="id && highlightId() === id"
+                        [attr.draggable]="id ? 'true' : null"
+                        [character]="character(id)"
+                        (dragstart)="onDragStart({ kind: 'slot', raid: raidIndex, slot, id: id! })"
+                        (dragend)="onDragEnd()"
+                        (dragover)="$event.preventDefault()"
+                        (drop)="onSlotDrop($event, raidIndex, slot)"
+                        (click)="onSlotClick(id)"
+                      />
+                    } @else {
+                      <rc-character-tile class="editor-tile--readonly" [character]="character(id)" />
+                    }
+                  }
+                }
+              </div>
+
+              <div
+                class="editor-groups editor-bench"
+                (dragover)="$event.preventDefault()"
+                (drop)="onBenchDrop($event, raidIndex)"
+              >
+                <span class="editor-group-label">BENCH</span>
+                @for (id of raid.bench; track id) {
+                  @if (canEdit()) {
+                    <rc-character-tile
+                      class="editor-tile"
+                      draggable="true"
+                      [character]="character(id)"
+                      (dragstart)="onDragStart({ kind: 'bench', raid: raidIndex, id })"
+                      (dragend)="onDragEnd()"
+                      (click)="onBenchClick(id)"
+                    />
+                  } @else {
+                    <rc-character-tile class="editor-tile--readonly" [character]="character(id)" />
+                  }
+                }
+                @if (canEdit()) {
+                  <rc-character-tile class="editor-bench-drop" />
+                }
+              </div>
+            </article>
+          }
+        </div>
+        @if (canEdit()) {
+          <button class="btn btn-primary editor-add-raid" type="button" (click)="onAddRaid()">Add raid</button>
+        }
+      </section>
+    </div>
+  }
+</div>

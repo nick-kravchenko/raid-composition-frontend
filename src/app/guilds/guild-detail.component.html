@@ -11,12 +11,16 @@
     <section class="guild-detail-header">
       <h1 class="guild-detail-name">{{ guild()!.name }}</h1>
       <p class="guild-detail-meta">
-        {{ guild()!.realm }} &middot; {{ guild()!.region | uppercase }} &middot; {{ guild()!.faction | titlecase }} &middot; {{ guild()!.game_version }}
+        {{ guild()!.realm }} &middot; {{ guild()!.region | uppercase }} &middot; {{ guild()!.faction | titlecase }}
       </p>
       @if (guild()!.membership_role) {
         <p class="guild-detail-role">Your role: <span class="guild-detail-role-value">{{ guild()!.membership_role }}</span></p>
       }
     </section>
+
+    @if (actionError()) {
+      <p class="guild-detail-error" role="alert">{{ actionError() }}</p>
+    }
 
     @if (isAdmin()) {
       <section class="guild-detail-invite">
@@ -25,6 +29,9 @@
         @if (displayInviteUrl()) {
           <p class="guild-detail-invite-label">Share this link:</p>
           <code class="guild-detail-invite-url">{{ displayInviteUrl() }}</code>
+          <button class="btn btn-ghost" type="button" (click)="onCopyInvite()">
+            {{ inviteCopied() ? 'Copied' : 'Copy link' }}
+          </button>
         }
 
         <button
@@ -84,6 +91,13 @@
                     >
                       Promote to Officer
                     </button>
+                    <button
+                      class="btn btn-ghost btn--sm"
+                      [disabled]="promotingUserId() === member.user_id"
+                      (click)="onRejectApplicant(member)"
+                    >
+                      Reject
+                    </button>
                   </div>
                 }
               </li>
@@ -93,22 +107,77 @@
       </section>
 
       <section class="guild-detail-characters">
-        <h2 class="guild-detail-section-title">Characters</h2>
+        <div class="guild-detail-section-header">
+          <h2 class="guild-detail-section-title">Characters</h2>
+          <a class="btn btn-ghost btn--sm" [routerLink]="['/guilds', guild()!.id, 'compositions']">Compositions</a>
+          <button class="btn btn-primary btn--sm" type="button" (click)="onAddCharacter()">Add character</button>
+        </div>
 
-        @if (characters().length === 0) {
+        <div class="guild-detail-version-tabs" role="tablist">
+          @for (version of gameVersions; track version.value) {
+            <button
+              type="button"
+              role="tab"
+              class="btn btn--sm"
+              [class.btn-primary]="gameVersion() === version.value"
+              [class.btn-ghost]="gameVersion() !== version.value"
+              [attr.aria-selected]="gameVersion() === version.value"
+              (click)="gameVersion.set(version.value); onCharacterFormCancelled()"
+            >
+              {{ version.label }}
+            </button>
+          }
+        </div>
+
+        @if (showCharacterForm()) {
+          <rc-character-form
+            [guildId]="guild()!.id"
+            [gameVersion]="gameVersion()"
+            [defaultRegion]="guild()!.region"
+            [defaultServer]="guild()!.realm"
+            [character]="editingCharacter()"
+            [canManageRoster]="isLeader()"
+            (saved)="onCharacterSaved($event)"
+            (cancelled)="onCharacterFormCancelled()"
+          />
+        }
+
+        @if (groupedByClass().length === 0) {
           <p class="guild-detail-empty">No characters found.</p>
         } @else {
           @for (group of groupedByClass(); track group.className) {
-            <h3 class="guild-detail-character-class-heading">{{ group.className }}</h3>
+            <h3 class="guild-detail-character-class-heading">{{ group.className | titlecase }}</h3>
             <ul class="guild-detail-character-list">
               @for (character of group.characters; track character.id) {
-                <li>
+                <li class="guild-detail-character-item">
                   <a class="guild-detail-character-row" [routerLink]="['/characters', character.id]">
                     <span class="guild-detail-character-class">{{ character.class }}</span>
                     <span class="guild-detail-character-spec">{{ character.spec }}</span>
                     <span class="guild-detail-character-name">{{ character.name }}</span>
                     <span class="guild-detail-character-rank">{{ character.rank }}</span>
                   </a>
+                  @if (isLeader()) {
+                    <select
+                      class="guild-detail-character-owner"
+                      [attr.aria-label]="'Owner of ' + character.name"
+                      (change)="onBindCharacter(character, $any($event.target).value)"
+                    >
+                      <option value="" [selected]="!character.user_id">
+                        Unbound{{ character.player_name ? ' (' + character.player_name + ')' : '' }}
+                      </option>
+                      @for (member of members(); track member.user_id) {
+                        <option [value]="member.user_id" [selected]="member.user_id === character.user_id">
+                          {{ memberName(member) }}
+                        </option>
+                      }
+                    </select>
+                  } @else if (characterPlayer(character); as player) {
+                    <span class="guild-detail-character-player">{{ player }}</span>
+                  }
+                  @if (character.can_manage) {
+                    <button class="btn btn-ghost btn--sm" type="button" (click)="onEditCharacter(character)">Edit</button>
+                    <button class="btn btn-ghost btn--sm" type="button" (click)="onDeleteCharacter(character)">Remove</button>
+                  }
                 </li>
               }
             </ul>

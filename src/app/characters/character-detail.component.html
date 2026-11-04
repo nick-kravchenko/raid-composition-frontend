@@ -14,7 +14,7 @@
       <h1 class="character-detail-name">{{ char.name }}</h1>
       <p class="character-detail-meta">{{ char.class | titlecase }} &middot; {{ char.spec | titlecase }}</p>
       <p class="character-detail-meta">{{ char.role | titlecase }} &middot; {{ char.rank | titlecase }}</p>
-      <p class="character-detail-meta">{{ char.server }} &middot; {{ char.region | uppercase }}</p>
+      <p class="character-detail-meta">{{ char.server ? char.server + ' · ' : '' }}{{ char.region | uppercase }}</p>
     </header>
 
     @if (char.battlenet; as bnet) {
@@ -108,23 +108,25 @@
       </section>
     }
 
-    <div class="character-detail-refresh-row">
-      <button class="btn btn-primary" type="button" [disabled]="refreshingBNet()" (click)="onRefreshBNet()">
-        @if (refreshingBNet()) {
-          Refreshing...
-        } @else {
-          Refresh BNet Data
-        }
-      </button>
+    @if (char.can_manage && char.game_version === 'classicann') {
+      <div class="character-detail-refresh-row">
+        <button class="btn btn-primary" type="button" [disabled]="refreshingBNet()" (click)="onRefreshBNet()">
+          @if (refreshingBNet()) {
+            Refreshing...
+          } @else {
+            Refresh BNet Data
+          }
+        </button>
 
-      <button class="btn btn-ghost" type="button" [disabled]="refreshingWcl()" (click)="onRefreshWcl()">
-        @if (refreshingWcl()) {
-          Refreshing...
-        } @else {
-          Refresh WCL Data
-        }
-      </button>
-    </div>
+        <button class="btn btn-ghost" type="button" [disabled]="refreshingWcl()" (click)="onRefreshWcl()">
+          @if (refreshingWcl()) {
+            Refreshing...
+          } @else {
+            Refresh WCL Data
+          }
+        </button>
+      </div>
+    }
 
     @if (refreshError()) {
       <p class="character-detail-refresh-error">{{ refreshError() }}</p>

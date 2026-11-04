@@ -7,7 +7,10 @@ import { DiscordCallbackComponent } from './discord-callback.component';
 
 describe('DiscordCallbackComponent', () => {
   let queryParams: BehaviorSubject<Record<string, string>>;
-  let auth: { completeDiscordCallback: ReturnType<typeof vi.fn> };
+  let auth: {
+    completeDiscordCallback: ReturnType<typeof vi.fn>;
+    consumePostLoginUrl: ReturnType<typeof vi.fn>;
+  };
   let router: { navigateByUrl: ReturnType<typeof vi.fn> };
 
   async function createComponent(): Promise<ComponentFixture<DiscordCallbackComponent>> {
@@ -30,7 +33,7 @@ describe('DiscordCallbackComponent', () => {
 
   beforeEach(() => {
     queryParams = new BehaviorSubject<Record<string, string>>({});
-    auth = { completeDiscordCallback: vi.fn() };
+    auth = { completeDiscordCallback: vi.fn(), consumePostLoginUrl: vi.fn().mockReturnValue('/') };
     router = { navigateByUrl: vi.fn() };
   });
 
@@ -54,6 +57,17 @@ describe('DiscordCallbackComponent', () => {
     expect(auth.completeDiscordCallback).toHaveBeenCalledWith('code-1', 'state-1');
     expect(router.navigateByUrl).toHaveBeenCalledWith('/');
     expect(fixture.nativeElement.textContent).toContain('Signing in');
+  });
+
+  it('returns to the page that asked for login', async () => {
+    queryParams.next({ code: 'code-1', state: 'state-1' });
+    auth.completeDiscordCallback.mockResolvedValue(undefined);
+    auth.consumePostLoginUrl.mockReturnValue('/guild-invites/abc');
+
+    const fixture = await createComponent();
+    await fixture.whenStable();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/guild-invites/abc');
   });
 
   it('shows an error when callback exchange fails', async () => {

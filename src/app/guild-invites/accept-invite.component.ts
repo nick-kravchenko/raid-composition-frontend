@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom, filter, take } from 'rxjs';
@@ -7,7 +8,7 @@ import { AuthService } from '../auth/auth.service';
 import { GuildService } from '../guild.service';
 import { Guild } from '../guild.models';
 
-type AcceptInviteStatus = 'loading' | 'success' | 'error' | 'needs-auth';
+type AcceptInviteStatus = 'loading' | 'success' | 'error' | 'needs-auth' | 'already-member';
 
 @Component({
   selector: 'rc-accept-invite',
@@ -18,12 +19,17 @@ type AcceptInviteStatus = 'loading' | 'success' | 'error' | 'needs-auth';
         <h1>Joining guild...</h1>
       } @else if (status() === 'success') {
         <h1>You have joined {{ guild()!.name }}!</h1>
+        <p>A guild admin needs to approve you before you can see the roster.</p>
         <a [routerLink]="['/guilds', guild()!.id]">Go to guild</a>
       } @else if (status() === 'error') {
         <h1>Failed to join guild. The invite link may be invalid or expired.</h1>
         <a routerLink="/guilds">Back to guilds</a>
+      } @else if (status() === 'already-member') {
+        <h1>You are already a member of this guild.</h1>
+        <a routerLink="/guilds">Back to guilds</a>
       } @else if (status() === 'needs-auth') {
-        <h1>Please sign in to manage guilds.</h1>
+        <h1>Sign in to accept this guild invite.</h1>
+        <button class="btn btn-primary" type="button" (click)="onLogin()">Login with Discord</button>
       }
     </main>
   `,
@@ -108,8 +114,15 @@ export class AcceptInviteComponent {
       const result = await firstValueFrom(this.guildService.acceptInvite(code));
       this.guild.set(result);
       this.status.set('success');
-    } catch {
-      this.status.set('error');
+    } catch (error) {
+      this.status.set(
+        error instanceof HttpErrorResponse && error.status === 409 ? 'already-member' : 'error',
+      );
     }
+  }
+
+  onLogin(): Promise<void> {
+    const code = this.route.snapshot.paramMap.get('code');
+    return this.authService.beginDiscordLogin(`/guild-invites/${code}`);
   }
 }

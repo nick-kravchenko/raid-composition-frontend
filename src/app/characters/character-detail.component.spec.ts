@@ -47,7 +47,12 @@ const stubWcl: CharacterWarcraftLogsSnapshot = {
 
 const stubCharacter: CharacterDetail = {
   id: 'char-1',
+  guild_id: 'guild-1',
+  game_version: 'classicann',
   user_id: 'user-1',
+  player_name: null,
+  owner: null,
+  can_manage: true,
   name: 'Artheon',
   region: 'eu',
   server: 'silvermoon',
@@ -195,6 +200,21 @@ describe('CharacterDetailComponent', () => {
     );
     expect(gearAnchor).not.toBeNull();
     expect(gearAnchor.getAttribute('data-wh-icon-size')).toBe('large');
+  });
+
+  it('hides refresh buttons from viewers who cannot manage the character', async () => {
+    setupModule();
+    await createComponent();
+    await render();
+    expect(fixture.nativeElement.textContent).toContain('Refresh BNet Data');
+
+    fixture.componentInstance.character.update((c) => ({ ...c!, can_manage: false }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Refresh BNet Data');
+
+    fixture.componentInstance.character.update((c) => ({ ...c!, can_manage: true, game_version: 'forever' }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Refresh BNet Data');
   });
 
   it('gear href includes permanent enchant when present', async () => {

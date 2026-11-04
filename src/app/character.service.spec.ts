@@ -11,7 +11,12 @@ const API = 'http://localhost:8000/api/v1';
 
 const stubCharacter: CharacterDetail = {
   id: 'char-1',
+  guild_id: 'guild-1',
+  game_version: 'classicann',
   user_id: 'user-1',
+  player_name: null,
+  owner: null,
+  can_manage: true,
   name: 'Artheon',
   region: 'eu',
   server: 'silvermoon',

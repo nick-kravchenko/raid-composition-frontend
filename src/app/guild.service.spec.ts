@@ -14,7 +14,6 @@ const stubGuild = {
   realm: 'Silvermoon',
   region: 'eu' as const,
   faction: 'alliance' as const,
-  game_version: 'classic' as const,
   created_at: '2026-05-01T00:00:00Z',
   updated_at: '2026-05-01T00:00:00Z',
   deleted_at: null,
@@ -71,7 +70,7 @@ describe('GuildService', () => {
   });
 
   it('createGuild: POST /guilds with credentials and payload, returns unwrapped guild', async () => {
-    const payload = { name: 'The Mighty', realm: 'Silvermoon', region: 'eu' as const, faction: 'alliance' as const, game_version: 'classic' as const };
+    const payload = { name: 'The Mighty', realm: 'Silvermoon', region: 'eu' as const, faction: 'alliance' as const };
     const result = firstValueFrom(service.createGuild(payload));
 
     const req = http.expectOne(`${API}/guilds`);
