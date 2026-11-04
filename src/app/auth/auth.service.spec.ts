@@ -107,14 +107,12 @@ describe('AuthService', () => {
     expect(service.state()).toEqual({ status: 'unauthenticated' });
   });
 
-  it('posts the logout request with the CSRF header and clears auth state', async () => {
-    document.cookie = 'csrf=csrf-token';
+  it('posts the logout request and clears auth state', async () => {
     const logout = service.logout();
 
     const request = http.expectOne('http://localhost:8000/api/v1/auth/logout');
     expect(request.request.method).toBe('POST');
     expect(request.request.withCredentials).toBe(true);
-    expect(request.request.headers.get('X-CSRF-Token')).toBe('csrf-token');
     request.flush(null, { status: 204, statusText: 'No Content' });
 
     await logout;

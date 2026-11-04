@@ -2,6 +2,11 @@ import { InjectionToken } from '@angular/core';
 
 export const API_BASE = new InjectionToken<string>('API_BASE');
 
+/** Passed from the Express server to the app through Angular's REQUEST_CONTEXT token. */
+export interface SsrRequestContext {
+  clientIp?: string;
+}
+
 /**
  * API base URL for the browser. Local development talks to the backend on its own port; every
  * other host serves the API from the same origin as the frontend.

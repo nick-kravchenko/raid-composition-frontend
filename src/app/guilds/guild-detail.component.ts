@@ -9,7 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 import { Character, Guild, GuildMember } from '../guild.models';
@@ -41,6 +41,7 @@ export class GuildDetailComponent implements OnInit {
   unauthenticated = signal(false);
 
   isAdmin = computed(() => this.guild()?.membership_role === 'admin');
+  isApplicant = computed(() => this.guild()?.membership_role === 'applicant');
   // After rotating, show the new URL; otherwise fall back to the guild's existing invite_url.
   displayInviteUrl = computed(() => this.inviteUrl() ?? (this.guild()?.invite_url || null));
 
@@ -73,11 +74,22 @@ export class GuildDetailComponent implements OnInit {
     }
 
     try {
-      const [guild, members, characters] = await Promise.all([
-        firstValueFrom(this.guildService.getGuild(id)),
-        firstValueFrom(this.guildService.listMembers(id)),
-        firstValueFrom(this.guildService.listCharacters(id)),
-      ]);
+      // Chained rather than awaited in turn: a gap between requests would let SSR consider the app
+      // stable and serialize the loading state.
+      const { guild, members, characters } = await firstValueFrom(
+        this.guildService.getGuild(id).pipe(
+          switchMap((guild) =>
+            // The API keeps the roster from applicants until an admin promotes them.
+            guild.membership_role === 'applicant'
+              ? of({ guild, members: [], characters: [] })
+              : forkJoin({
+                  guild: of(guild),
+                  members: this.guildService.listMembers(id),
+                  characters: this.guildService.listCharacters(id),
+                }),
+          ),
+        ),
+      );
       this.guild.set(guild);
       this.members.set(members);
       this.characters.set(characters);

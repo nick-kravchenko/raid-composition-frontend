@@ -1,110 +1,106 @@
-import { HttpRequest } from '@angular/common/http';
-import { PLATFORM_ID, REQUEST } from '@angular/core';
+import { HttpHeaders, HttpRequest, HttpResponse } from '@angular/common/http';
+import { PLATFORM_ID, Provider, REQUEST, REQUEST_CONTEXT, RESPONSE_INIT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+
+import { API_BASE } from '../app.tokens';
 import { cookieForwarderInterceptor } from './cookie-forwarder.interceptor';
 
+const API = 'http://localhost:8000/api/v1';
 
 describe('cookieForwarderInterceptor', () => {
-  const baseReq = new HttpRequest('GET', 'http://localhost:8000/api/v1/auth/session');
+  const baseReq = new HttpRequest('GET', `${API}/auth/session`);
 
-  describe('server platform with cookie present', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          { provide: PLATFORM_ID, useValue: 'server' },
-          {
-            provide: REQUEST,
-            useValue: new Request('http://localhost:4200/guilds', {
-              headers: { cookie: 'session=abc123; csrf=tok' },
-            }),
-          },
-        ],
-      });
+  function setup(platform: 'server' | 'browser', ...providers: Provider[]): void {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PLATFORM_ID, useValue: platform },
+        { provide: API_BASE, useValue: API },
+        ...providers,
+      ],
     });
+  }
 
-    it('adds Cookie header to outgoing request', () => {
-      let captured!: HttpRequest<unknown>;
-      TestBed.runInInjectionContext(() => {
-        cookieForwarderInterceptor(baseReq, (r) => {
-          captured = r as HttpRequest<unknown>;
-          return { subscribe: () => ({}) } as never;
-        });
-      });
-      expect(captured.headers.get('Cookie')).toBe('session=abc123; csrf=tok');
+  function visitorRequest(headers: Record<string, string> = {}): Provider {
+    return {
+      provide: REQUEST,
+      useValue: new Request('http://localhost:4200/guilds', { headers }),
+    };
+  }
+
+  function intercept(
+    req: HttpRequest<unknown> = baseReq,
+    response = new HttpResponse({ status: 200 }),
+  ): HttpRequest<unknown> {
+    let captured!: HttpRequest<unknown>;
+    TestBed.runInInjectionContext(() => {
+      cookieForwarderInterceptor(req, (forwarded) => {
+        captured = forwarded;
+        return of(response);
+      }).subscribe();
     });
+    return captured;
+  }
+
+  it('forwards the visitor cookie, user agent and client IP to the API', () => {
+    setup(
+      'server',
+      visitorRequest({ cookie: 'session=abc123; csrf=tok', 'user-agent': 'Firefox' }),
+      { provide: REQUEST_CONTEXT, useValue: { clientIp: '192.0.2.1' } },
+    );
+
+    const forwarded = intercept();
+
+    expect(forwarded.headers.get('Cookie')).toBe('session=abc123; csrf=tok');
+    expect(forwarded.headers.get('User-Agent')).toBe('Firefox');
+    expect(forwarded.headers.get('X-Forwarded-For')).toBe('192.0.2.1');
   });
 
-  describe('browser platform', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          { provide: PLATFORM_ID, useValue: 'browser' },
-          {
-            provide: REQUEST,
-            useValue: new Request('http://localhost:4200/', {
-              headers: { cookie: 'session=abc123' },
-            }),
-          },
-        ],
-      });
+  it('passes cookies set by the API back to the browser', () => {
+    const responseInit: ResponseInit = {
+      status: 200,
+      headers: new Headers({ 'Content-Type': 'text/html' }),
+    };
+    setup('server', visitorRequest({ cookie: 'session=abc123' }), {
+      provide: RESPONSE_INIT,
+      useValue: responseInit,
     });
 
-    it('passes original request through unmodified', () => {
-      let captured!: HttpRequest<unknown>;
-      TestBed.runInInjectionContext(() => {
-        cookieForwarderInterceptor(baseReq, (r) => {
-          captured = r as HttpRequest<unknown>;
-          return { subscribe: () => ({}) } as never;
-        });
-      });
-      expect(captured).toBe(baseReq);
-      expect(captured.headers.get('Cookie')).toBeNull();
-    });
+    intercept(
+      baseReq,
+      new HttpResponse({
+        status: 200,
+        headers: new HttpHeaders({ 'set-cookie': ['session=new; HttpOnly', 'other=1'] }),
+      }),
+    );
+
+    const headers = responseInit.headers as Headers;
+    expect(headers.getSetCookie()).toEqual(['session=new; HttpOnly', 'other=1']);
+    expect(headers.get('Content-Type')).toBe('text/html');
   });
 
-  describe('server platform with null REQUEST token', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          { provide: PLATFORM_ID, useValue: 'server' },
-          { provide: REQUEST, useValue: null },
-        ],
-      });
-    });
+  it('never sends visitor data to other origins', () => {
+    setup('server', visitorRequest({ cookie: 'session=abc123', 'user-agent': 'Firefox' }));
+    const external = new HttpRequest('GET', 'https://example.test/data');
 
-    it('passes original request through unmodified', () => {
-      let captured!: HttpRequest<unknown>;
-      TestBed.runInInjectionContext(() => {
-        cookieForwarderInterceptor(baseReq, (r) => {
-          captured = r as HttpRequest<unknown>;
-          return { subscribe: () => ({}) } as never;
-        });
-      });
-      expect(captured).toBe(baseReq);
-      expect(captured.headers.get('Cookie')).toBeNull();
-    });
+    expect(intercept(external)).toBe(external);
   });
 
-  describe('server platform with no cookie header', () => {
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          { provide: PLATFORM_ID, useValue: 'server' },
-          { provide: REQUEST, useValue: new Request('http://localhost:4200/') },
-        ],
-      });
-    });
+  it('does nothing in the browser', () => {
+    setup('browser', visitorRequest({ cookie: 'session=abc123' }));
 
-    it('passes original request through unmodified', () => {
-      let captured!: HttpRequest<unknown>;
-      TestBed.runInInjectionContext(() => {
-        cookieForwarderInterceptor(baseReq, (r) => {
-          captured = r as HttpRequest<unknown>;
-          return { subscribe: () => ({}) } as never;
-        });
-      });
-      expect(captured).toBe(baseReq);
-      expect(captured.headers.get('Cookie')).toBeNull();
-    });
+    expect(intercept()).toBe(baseReq);
+  });
+
+  it('passes the request through without a server request', () => {
+    setup('server', { provide: REQUEST, useValue: null });
+
+    expect(intercept()).toBe(baseReq);
+  });
+
+  it('passes the request through when the visitor sent nothing to forward', () => {
+    setup('server', visitorRequest());
+
+    expect(intercept()).toBe(baseReq);
   });
 });

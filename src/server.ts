@@ -4,8 +4,10 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import express from 'express';
+import express, { Request } from 'express';
 import { join } from 'node:path';
+
+import { SsrRequestContext } from './app/app.tokens';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -39,13 +41,23 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use((req, res, next) => {
+  const context: SsrRequestContext = { clientIp: clientIp(req) };
   angularApp
-    .handle(req)
+    .handle(req, context)
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
     .catch(next);
 });
+
+/**
+ * The visitor's address: the first X-Forwarded-For hop when behind the edge proxy, otherwise the peer.
+ */
+function clientIp(req: Request): string | undefined {
+  const forwarded = req.headers['x-forwarded-for'];
+  const firstHop = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
+  return (firstHop || req.socket.remoteAddress)?.replace(/^::ffff:/, '');
+}
 
 /**
  * Start the server if this module is the main entry point, or it is ran via PM2.

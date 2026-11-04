@@ -142,6 +142,24 @@ describe('GuildDetailComponent', () => {
     expect(guildService.listCharacters).not.toHaveBeenCalled();
   });
 
+  it('applicant sees a pending message and the roster is not requested', async () => {
+    setupModule({ status: 'authenticated', user: stubUser, session: {} as never }, 'applicant');
+    await createComponent();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('The Mighty');
+    expect(text).toContain('Your application is pending');
+    expect(text).not.toContain('Members');
+    expect(text).not.toContain('Characters');
+    expect(component.loadError()).toBeNull();
+    expect(guildService.listMembers).not.toHaveBeenCalled();
+    expect(guildService.listCharacters).not.toHaveBeenCalled();
+  });
+
   it('non-admin membership role hides Generate Invite button and promotion buttons', async () => {
     setupModule(
       { status: 'authenticated', user: stubUser, session: {} as never },

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { take } from 'rxjs';
 
@@ -45,7 +45,7 @@ type CallbackStatus = 'pending' | 'error';
     `,
   ],
 })
-export class DiscordCallbackComponent implements OnInit {
+export class DiscordCallbackComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -54,9 +54,13 @@ export class DiscordCallbackComponent implements OnInit {
   readonly errorTitle = signal('Discord sign-in failed');
   readonly errorMessage = signal('Please try signing in again.');
 
-  ngOnInit(): void {
-    this.route.queryParams.pipe(take(1)).subscribe((params) => {
-      void this.handleCallback(params['code'], params['state']);
+  constructor() {
+    // Browser only: the OAuth state is single-use and the session cookies must reach the browser, so
+    // SSR must never complete the login itself.
+    afterNextRender(() => {
+      this.route.queryParams.pipe(take(1)).subscribe((params) => {
+        void this.handleCallback(params['code'], params['state']);
+      });
     });
   }
 

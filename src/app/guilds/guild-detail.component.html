@@ -43,74 +43,78 @@
       </section>
     }
 
-    <section class="guild-detail-members">
-      <h2 class="guild-detail-section-title">Members</h2>
+    @if (isApplicant()) {
+      <p class="guild-detail-empty">Your application is pending. A guild admin needs to approve you before you can see the roster.</p>
+    } @else {
+      <section class="guild-detail-members">
+        <h2 class="guild-detail-section-title">Members</h2>
 
-      @if (members().length === 0) {
-        <p class="guild-detail-empty">No members found.</p>
-      } @else {
-        <ul class="guild-detail-member-list">
-          @for (member of members(); track member.user_id) {
-            <li class="guild-detail-member-row">
-              <img
-                class="guild-detail-member-avatar"
-                [src]="member.discord.avatar_url"
-                [alt]="(member.discord.global_name ?? member.discord.username ?? 'Discord user') + ' avatar'"
-              />
-              <div class="guild-detail-member-info">
-                <span class="guild-detail-member-name">{{ member.discord.global_name ?? member.discord.username ?? 'Discord user' }}</span>
-                @if (member.discord.username) {
-                  <span class="guild-detail-member-handle">&commat;{{ member.discord.username }}</span>
-                }
-              </div>
-              <span class="guild-detail-member-role">{{ member.role }}</span>
-
-              @if (isAdmin() && member.role === 'applicant') {
-                <div class="guild-detail-member-actions">
-                  <button
-                    class="btn btn-primary btn--sm"
-                    [disabled]="promotingUserId() === member.user_id"
-                    (click)="onPromoteMember(member.user_id, 'raider')"
-                  >
-                    Promote to Raider
-                  </button>
-                  <button
-                    class="btn btn-ghost btn--sm"
-                    [disabled]="promotingUserId() === member.user_id"
-                    (click)="onPromoteMember(member.user_id, 'officer')"
-                  >
-                    Promote to Officer
-                  </button>
+        @if (members().length === 0) {
+          <p class="guild-detail-empty">No members found.</p>
+        } @else {
+          <ul class="guild-detail-member-list">
+            @for (member of members(); track member.user_id) {
+              <li class="guild-detail-member-row">
+                <img
+                  class="guild-detail-member-avatar"
+                  [src]="member.discord.avatar_url"
+                  [alt]="(member.discord.global_name ?? member.discord.username ?? 'Discord user') + ' avatar'"
+                />
+                <div class="guild-detail-member-info">
+                  <span class="guild-detail-member-name">{{ member.discord.global_name ?? member.discord.username ?? 'Discord user' }}</span>
+                  @if (member.discord.username) {
+                    <span class="guild-detail-member-handle">&commat;{{ member.discord.username }}</span>
+                  }
                 </div>
-              }
-            </li>
-          }
-        </ul>
-      }
-    </section>
+                <span class="guild-detail-member-role">{{ member.role }}</span>
 
-    <section class="guild-detail-characters">
-      <h2 class="guild-detail-section-title">Characters</h2>
-
-      @if (characters().length === 0) {
-        <p class="guild-detail-empty">No characters found.</p>
-      } @else {
-        @for (group of groupedByClass(); track group.className) {
-          <h3 class="guild-detail-character-class-heading">{{ group.className }}</h3>
-          <ul class="guild-detail-character-list">
-            @for (character of group.characters; track character.id) {
-              <li>
-                <a class="guild-detail-character-row" [routerLink]="['/characters', character.id]">
-                  <span class="guild-detail-character-class">{{ character.class }}</span>
-                  <span class="guild-detail-character-spec">{{ character.spec }}</span>
-                  <span class="guild-detail-character-name">{{ character.name }}</span>
-                  <span class="guild-detail-character-rank">{{ character.rank }}</span>
-                </a>
+                @if (isAdmin() && member.role === 'applicant') {
+                  <div class="guild-detail-member-actions">
+                    <button
+                      class="btn btn-primary btn--sm"
+                      [disabled]="promotingUserId() === member.user_id"
+                      (click)="onPromoteMember(member.user_id, 'raider')"
+                    >
+                      Promote to Raider
+                    </button>
+                    <button
+                      class="btn btn-ghost btn--sm"
+                      [disabled]="promotingUserId() === member.user_id"
+                      (click)="onPromoteMember(member.user_id, 'officer')"
+                    >
+                      Promote to Officer
+                    </button>
+                  </div>
+                }
               </li>
             }
           </ul>
         }
-      }
-    </section>
+      </section>
+
+      <section class="guild-detail-characters">
+        <h2 class="guild-detail-section-title">Characters</h2>
+
+        @if (characters().length === 0) {
+          <p class="guild-detail-empty">No characters found.</p>
+        } @else {
+          @for (group of groupedByClass(); track group.className) {
+            <h3 class="guild-detail-character-class-heading">{{ group.className }}</h3>
+            <ul class="guild-detail-character-list">
+              @for (character of group.characters; track character.id) {
+                <li>
+                  <a class="guild-detail-character-row" [routerLink]="['/characters', character.id]">
+                    <span class="guild-detail-character-class">{{ character.class }}</span>
+                    <span class="guild-detail-character-spec">{{ character.spec }}</span>
+                    <span class="guild-detail-character-name">{{ character.name }}</span>
+                    <span class="guild-detail-character-rank">{{ character.rank }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </section>
+    }
   }
 </div>

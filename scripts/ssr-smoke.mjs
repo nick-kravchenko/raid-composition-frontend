@@ -7,9 +7,31 @@ import { createServer } from 'node:http';
 const ALLOWED_HOST = 'raid.smoke.test';
 const SERVER_ENTRY = 'dist/raid-composition-frontend/server/server.mjs';
 
+const REFRESHED_COOKIES = ['session=refreshed; Path=/; HttpOnly', 'extra=1; Path=/'];
+const VALID_SESSION = JSON.stringify({
+  user: {
+    id: 'user-1',
+    created_at: '2026-01-01T00:00:00Z',
+    discord: { id: '1', username: 'smoke', global_name: 'Smoke', avatar_url: '/favicon.ico' },
+  },
+  session: { id: 'session-1' },
+});
+
 const apiRequests = [];
 const api = createServer((req, res) => {
-  apiRequests.push({ url: req.url, cookie: req.headers.cookie });
+  apiRequests.push({
+    method: req.method,
+    url: req.url,
+    cookie: req.headers.cookie,
+    userAgent: req.headers['user-agent'],
+    forwardedFor: req.headers['x-forwarded-for'],
+  });
+  req.resume();
+  if (req.url === '/api/v1/auth/session' && req.headers.cookie === 'session=refresh-me') {
+    res.writeHead(200, { 'content-type': 'application/json', 'set-cookie': REFRESHED_COOKIES });
+    res.end(VALID_SESSION);
+    return;
+  }
   res.writeHead(401, { 'content-type': 'application/json' });
   res.end('{"error":"unauthorized"}');
 });
@@ -47,7 +69,7 @@ async function get(path, headers = {}) {
         let body = '';
         res.setEncoding('utf8');
         res.on('data', (chunk) => (body += chunk));
-        res.on('end', () => resolve({ status: res.statusCode, body }));
+        res.on('end', () => resolve({ status: res.statusCode, body, headers: res.headers }));
       },
     );
     req.on('error', reject);
@@ -93,6 +115,39 @@ const checks = [
     'calls the configured API and forwards the cookie',
     async () =>
       apiRequests.some((r) => r.url?.startsWith('/api/v1/') && r.cookie === 'session=smoke'),
+  ],
+  [
+    'forwards the visitor user agent and first proxy hop to the API',
+    async () => {
+      await get('/', { 'user-agent': 'smoke-browser', 'x-forwarded-for': '192.0.2.1, 10.0.0.1' });
+      const last = apiRequests.at(-1);
+      return last.userAgent === 'smoke-browser' && last.forwardedFor === '192.0.2.1';
+    },
+  ],
+  [
+    'falls back to the peer address without a proxy',
+    async () => {
+      await get('/');
+      return apiRequests.at(-1).forwardedFor === '127.0.0.1';
+    },
+  ],
+  [
+    'passes cookies refreshed during SSR back to the browser',
+    async () => {
+      const { status, headers } = await get('/', { cookie: 'session=refresh-me' });
+      return (
+        status === 200 &&
+        JSON.stringify(headers['set-cookie']) === JSON.stringify(REFRESHED_COOKIES)
+      );
+    },
+  ],
+  [
+    'leaves the Discord callback to the browser',
+    async () => {
+      const { status, body } = await get('/auth/discord/callback?code=smoke&state=smoke');
+      const postedByServer = apiRequests.some((r) => r.method === 'POST');
+      return status === 200 && body.includes('Signing in with Discord') && !postedByServer;
+    },
   ],
 ];
 

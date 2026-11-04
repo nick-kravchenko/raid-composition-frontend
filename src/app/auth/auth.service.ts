@@ -1,4 +1,4 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +14,6 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly document = inject(DOCUMENT);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly apiBase = inject(API_BASE);
   private readonly authState = signal<AuthState>({ status: 'loading' });
@@ -85,28 +84,9 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    const csrfToken = this.getCookieValue('csrf');
-
-    if (!csrfToken) {
-      this.authState.set({
-        status: 'error',
-        message: 'Unable to sign out because the CSRF token cookie is missing.',
-      });
-      throw new Error('CSRF token cookie is missing.');
-    }
-
     try {
       await firstValueFrom(
-        this.http.post<void>(
-          `${this.apiBase}/auth/logout`,
-          {},
-          {
-            withCredentials: true,
-            headers: {
-              'X-CSRF-Token': csrfToken,
-            },
-          },
-        ),
+        this.http.post<void>(`${this.apiBase}/auth/logout`, {}, { withCredentials: true }),
       );
       this.authState.set({ status: 'unauthenticated' });
     } catch (error) {
@@ -121,23 +101,5 @@ export class AuthService {
       });
       throw error;
     }
-  }
-
-  private getCookieValue(name: string): string | null {
-    if (!isPlatformBrowser(this.platformId)) {
-      return null;
-    }
-
-    const cookie = this.document.cookie ?? '';
-    const prefix = `${name}=`;
-
-    for (const entry of cookie.split(';')) {
-      const trimmed = entry.trim();
-      if (trimmed.startsWith(prefix)) {
-        return decodeURIComponent(trimmed.slice(prefix.length));
-      }
-    }
-
-    return null;
   }
 }
