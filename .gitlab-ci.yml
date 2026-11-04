@@ -1,0 +1,185 @@
+# Pipeline for the self-hosted GitLab (root/raid-composition-frontend). GitHub remains a plain mirror.
+#
+# test     -> unit tests and production build on the pinned Node runtime
+# build    -> rootless BuildKit image; pushed as an immutable :<commit SHA> tag on the default branch only
+# promote  -> commits the new tag to root/homelab-infra; Argo CD reconciles the cluster.
+#             CI never talks to the Kubernetes API.
+#
+# Required CI/CD variables on root/raid-composition-frontend:
+#   CADDY_CA_PEM         File variable: internal Caddy CA, trusted for registry.mini.local
+#   HOMELAB_INFRA_TOKEN  Masked + protected: homelab-infra project access token,
+#                        Maintainer role (main is protected), write_repository scope
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+stages:
+  - test
+  - build
+  - promote
+
+default:
+  tags:
+    - homelab-k8s
+  interruptible: true
+
+variables:
+  IMAGE: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}'
+  # In-cluster GitLab endpoint: plain HTTP inside the cluster, no dependency on the edge Caddy CA.
+  GITLAB_INTERNAL_URL: 'http://gitlab-webservice-default.gitlab.svc.cluster.local:8181'
+  GITOPS_REPOSITORY: '${GITLAB_INTERNAL_URL}/root/homelab-infra.git'
+  GITOPS_KUSTOMIZATION: applications/raid-composition/k8s/frontend/kustomization.yaml
+
+validate:
+  stage: test
+  image: node:26.12.1-trixie-slim
+  variables:
+    KUBERNETES_CPU_LIMIT: '2'
+    KUBERNETES_MEMORY_LIMIT: 3Gi
+    KUBERNETES_MEMORY_REQUEST: 1Gi
+    npm_config_cache: /tmp/npm-cache
+  script:
+    - npm ci
+    - npm test -- --watch=false
+    - npm run build
+
+# Visible but non-blocking: production advisories are fixed as dependency updates.
+audit:
+  stage: test
+  image: node:26.12.1-trixie-slim
+  needs: []
+  allow_failure: true
+  script:
+    - npm audit --omit=dev
+
+build-image:
+  stage: build
+  needs: [validate]
+  image:
+    name: moby/buildkit:rootless
+    entrypoint: ['']
+  variables:
+    KUBERNETES_CPU_LIMIT: '2'
+    KUBERNETES_MEMORY_LIMIT: 3Gi
+    KUBERNETES_MEMORY_REQUEST: 1Gi
+  before_script:
+    - |
+      set -eu
+      : "${CADDY_CA_PEM:?Missing CADDY_CA_PEM file variable}"
+      : "${CI_REGISTRY:?Container Registry not configured}"
+
+      REG_HOST="${CI_REGISTRY%%/*}"
+      CERT_DIR="$HOME/.config/buildkit/certs/$REG_HOST"
+      mkdir -p "$HOME/.docker" "$CERT_DIR"
+
+      # Keep public CAs (npm, base image pulls) and add the internal Caddy CA.
+      cat /etc/ssl/certs/ca-certificates.crt "$CADDY_CA_PEM" > "$CERT_DIR/ca-bundle.pem"
+      cat > "$HOME/.config/buildkit/buildkitd.toml" <<EOF
+      [registry."$REG_HOST"]
+        ca = ["$CERT_DIR/ca-bundle.pem"]
+      EOF
+
+      export SSL_CERT_FILE="$CERT_DIR/ca-bundle.pem"
+      export BUILDKITD_FLAGS="--oci-worker-no-process-sandbox --config=$HOME/.config/buildkit/buildkitd.toml"
+
+      printf '{"auths":{"%s":{"username":"%s","password":"%s"}}}\n' \
+        "$CI_REGISTRY" "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD" > "$HOME/.docker/config.json"
+  script:
+    - |
+      set -eu
+      # Branches prove the image builds; only the default branch publishes the immutable SHA tag.
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        OUTPUT="type=image,name=${IMAGE},push=true"
+      else
+        OUTPUT="type=image,name=${IMAGE},push=false"
+      fi
+      buildctl-daemonless.sh build \
+        --progress=plain \
+        --frontend dockerfile.v0 \
+        --local context=. \
+        --local dockerfile=. \
+        --opt filename=Dockerfile \
+        --opt label:org.opencontainers.image.revision="$CI_COMMIT_SHA" \
+        --opt label:org.opencontainers.image.source="$CI_PROJECT_URL" \
+        --output "$OUTPUT"
+
+promote:
+  stage: promote
+  needs: [build-image]
+  image: alpine:3.24.3
+  interruptible: false
+  resource_group: raid-composition-frontend-promotion
+  variables:
+    GIT_DEPTH: '0'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - |
+      set -eu
+      : "${HOMELAB_INFRA_TOKEN:?Missing HOMELAB_INFRA_TOKEN variable}"
+      apk add --no-cache git >/dev/null
+
+      export GIT_TERMINAL_PROMPT=0
+      # Credentials come from GIT_USER/GIT_PASS, set per repository below.
+      cat > /tmp/git-askpass <<'EOF'
+      #!/bin/sh
+      case "$1" in
+        *Username*) printf '%s\n' "$GIT_USER" ;;
+        *Password*) printf '%s\n' "$GIT_PASS" ;;
+      esac
+      EOF
+      chmod 700 /tmp/git-askpass
+      export GIT_ASKPASS=/tmp/git-askpass
+
+      # Do not let an old pipeline promote over a newer main.
+      HEAD_SHA="$(GIT_USER=gitlab-ci-token GIT_PASS="$CI_JOB_TOKEN" \
+        git ls-remote "${GITLAB_INTERNAL_URL}/${CI_PROJECT_PATH}.git" "refs/heads/$CI_DEFAULT_BRANCH" | cut -f1)"
+      test -n "$HEAD_SHA" || { echo "Could not read $CI_DEFAULT_BRANCH of $CI_PROJECT_PATH" >&2; exit 1; }
+      if [ "$HEAD_SHA" != "$CI_COMMIT_SHA" ]; then
+        echo "default branch moved to $HEAD_SHA; skipping promotion of $CI_COMMIT_SHA"
+        exit 0
+      fi
+
+      export GIT_USER=homelab-infra-promotion GIT_PASS="$HOMELAB_INFRA_TOKEN"
+      git clone --quiet --branch main "$GITOPS_REPOSITORY" /tmp/gitops
+      cd /tmp/gitops
+      git config user.name "Raid Composition Frontend CI"
+      git config user.email "ci@mini.local"
+
+      for attempt in 1 2 3; do
+        git fetch --quiet origin main
+        git reset --quiet --hard origin/main
+
+        CURRENT="$(sed -n -E 's/^[[:space:]]*newTag:[[:space:]]*"?([0-9a-f]{40})"?.*/\1/p' "$GITOPS_KUSTOMIZATION")"
+        test -n "$CURRENT" || { echo "No SHA newTag in $GITOPS_KUSTOMIZATION" >&2; exit 1; }
+        if [ "$CURRENT" = "$CI_COMMIT_SHA" ]; then
+          echo "Image already promoted"
+          exit 0
+        fi
+        # Never roll the cluster back to an ancestor of what is deployed. The all-zero
+        # placeholder only exists before the first promotion.
+        if [ "$CURRENT" != "0000000000000000000000000000000000000000" ] &&
+          ! (cd "$CI_PROJECT_DIR" && git merge-base --is-ancestor "$CURRENT" "$CI_COMMIT_SHA"); then
+          echo "Deployed $CURRENT is not an ancestor of $CI_COMMIT_SHA; refusing to promote" >&2
+          exit 1
+        fi
+
+        sed -i -E "s/^([[:space:]]*newTag:[[:space:]]*)\"?[0-9a-f]{40}\"?/\1\"${CI_COMMIT_SHA}\"/" "$GITOPS_KUSTOMIZATION"
+        grep -Fq "newTag: \"${CI_COMMIT_SHA}\"" "$GITOPS_KUSTOMIZATION"
+
+        git add "$GITOPS_KUSTOMIZATION"
+        git commit --quiet -m "ci: promote raid-composition-frontend ${CI_COMMIT_SHORT_SHA} [skip ci]" \
+          -m "Source: ${CI_PROJECT_URL}/-/commit/${CI_COMMIT_SHA}" \
+          -m "Pipeline: ${CI_PIPELINE_URL}"
+        if git push --quiet origin HEAD:main; then
+          echo "Promoted ${IMAGE}"
+          exit 0
+        fi
+        echo "Push rejected (attempt $attempt); retrying on latest main"
+      done
+      echo "Promotion failed after 3 attempts" >&2
+      exit 1
