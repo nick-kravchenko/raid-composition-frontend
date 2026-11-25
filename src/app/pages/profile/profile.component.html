@@ -57,11 +57,35 @@
           <h2 id="connections-title">Connected accounts</h2>
           <p>Account connections are coming soon.</p>
           <div class="connections">
-            <button class="btn btn-secondary" type="button" (click)="connect('Battle.net')">
-              Connect Battle.net
+            <button
+              class="btn connection-button connection-button--battlenet"
+              type="button"
+              (click)="connect('Battle.net')"
+            >
+              <img
+                class="connection-logo"
+                src="https://bnetcmsus-a.akamaihd.net/cms/page_media/1l/1LBON0FWR9J01623119560966.png"
+                alt=""
+                width="132"
+                height="36"
+                referrerpolicy="no-referrer"
+              />
+              <span>Connect Battle.net</span>
             </button>
-            <button class="btn btn-secondary" type="button" (click)="connect('Warcraft Logs')">
-              Connect Warcraft Logs
+            <button
+              class="btn connection-button connection-button--warcraftlogs"
+              type="button"
+              (click)="connect('Warcraft Logs')"
+            >
+              <img
+                class="connection-logo"
+                src="https://assets.rpglogs.com/cms/WCL_a51f615531.png"
+                alt=""
+                width="132"
+                height="36"
+                referrerpolicy="no-referrer"
+              />
+              <span>Connect Warcraft Logs</span>
             </button>
           </div>
           <p class="feedback" role="status">{{ feedback() }}</p>

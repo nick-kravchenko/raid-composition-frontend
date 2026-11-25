@@ -61,7 +61,7 @@ describe('ProfileComponent', () => {
     expect(text()).toContain('Raid Lead');
     expect(text()).toContain('raidlead');
     expect(text()).toContain('123456789');
-    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(
+    expect(fixture.nativeElement.querySelector('img.avatar').getAttribute('src')).toBe(
       authenticated.user.discord.avatar_url,
     );
     expect(auth.loadSession).not.toHaveBeenCalled();
@@ -78,13 +78,13 @@ describe('ProfileComponent', () => {
     fixture.detectChanges();
     expect(text()).toContain('Discord user');
     expect(text()).toContain('Unavailable');
-    fixture.nativeElement.querySelector('img').dispatchEvent(new Event('error'));
+    fixture.nativeElement.querySelector('img.avatar').dispatchEvent(new Event('error'));
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('img')).toBeNull();
+    expect(fixture.nativeElement.querySelector('img.avatar')).toBeNull();
     expect(fixture.nativeElement.querySelector('.avatar-fallback')).not.toBeNull();
     state.set(structuredClone(authenticated));
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('img')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('img.avatar')).not.toBeNull();
   });
 
   it('announces each dummy connection without calling authentication services', () => {

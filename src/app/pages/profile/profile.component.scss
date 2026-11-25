@@ -62,8 +62,64 @@ dd {
 }
 .connections {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 320px;
   gap: 0.75rem;
+}
+// Provider-inspired treatments; these are not official OAuth button specifications.
+// References: Blizzard logo guidelines and Archon RPGLogs Branding Information.
+.connection-button {
+  height: auto;
+  min-height: 96px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 4px;
+  white-space: normal;
+  text-align: center;
+}
+.connection-logo {
+  width: 132px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.connection-button--battlenet {
+  background: #0074e0;
+  border-color: #148eff;
+  color: #fff;
+  font-weight: 600;
+
+  &:hover {
+    background: #0063bf;
+    border-color: #47a6ff;
+  }
+  &:active {
+    background: #0055a6;
+  }
+  &:focus-visible {
+    outline-color: #68b7ff;
+  }
+}
+.connection-button--warcraftlogs {
+  background: #321416;
+  border-color: #a43232;
+  color: #ffe2aa;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #c13b3b;
+
+  &:hover {
+    background: #4a1c20;
+    border-color: #d45454;
+  }
+  &:active {
+    background: #261013;
+  }
+  &:focus-visible {
+    outline-color: #ffcf85;
+  }
 }
 .feedback {
   margin: 1rem 0 0;
