@@ -1,0 +1,75 @@
+<section class="profile container" aria-labelledby="profile-title">
+  <h1 id="profile-title">Your profile</h1>
+  @switch (state().status) {
+    @case ('loading') {
+      <p role="status">Loading your profile…</p>
+    }
+    @case ('error') {
+      <div class="panel">
+        <p>Unable to load your profile.</p>
+        <button class="btn btn-primary" type="button" (click)="retry()" [disabled]="pending()">
+          Try again
+        </button>
+      </div>
+    }
+    @case ('unauthenticated') {
+      <div class="panel">
+        <h2>Sign in to view your profile</h2>
+        <p>Use your Discord account to get started.</p>
+        <button class="btn btn-primary" type="button" (click)="signIn()" [disabled]="pending()">
+          {{ pending() ? 'Connecting…' : 'Sign in with Discord' }}
+        </button>
+      </div>
+    }
+    @case ('authenticated') {
+      @if (user(); as currentUser) {
+        <div class="panel identity">
+          @if (!avatarFailed() && currentUser.discord.avatar_url) {
+            <img
+              class="avatar"
+              [src]="currentUser.discord.avatar_url"
+              [alt]="displayName() + ' avatar'"
+              (error)="avatarFailed.set(true)"
+            />
+          } @else {
+            <span
+              class="avatar avatar-fallback"
+              role="img"
+              aria-label="Discord avatar unavailable"
+              >{{ displayName().charAt(0).toUpperCase() }}</span
+            >
+          }
+          <div class="identity-details">
+            <h2>{{ displayName() }}</h2>
+            <dl>
+              <div>
+                <dt>Discord username</dt>
+                <dd>{{ currentUser.discord.username || 'Unavailable' }}</dd>
+              </div>
+              <div>
+                <dt>Discord ID</dt>
+                <dd>{{ currentUser.discord.id }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+        <section class="panel" aria-labelledby="connections-title">
+          <h2 id="connections-title">Connected accounts</h2>
+          <p>Account connections are coming soon.</p>
+          <div class="connections">
+            <button class="btn btn-secondary" type="button" (click)="connect('Battle.net')">
+              Connect Battle.net
+            </button>
+            <button class="btn btn-secondary" type="button" (click)="connect('Warcraft Logs')">
+              Connect Warcraft Logs
+            </button>
+          </div>
+          <p class="feedback" role="status">{{ feedback() }}</p>
+        </section>
+      }
+    }
+  }
+  @if (actionError()) {
+    <p role="alert">{{ actionError() }}</p>
+  }
+</section>

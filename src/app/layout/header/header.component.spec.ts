@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { ProfileComponent } from '../../pages/profile/profile.component';
+import { routes } from '../../app.routes';
 import { computed, signal } from '@angular/core';
 
 import { AuthService } from '../../auth/auth.service';
@@ -29,7 +31,7 @@ describe('HeaderComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
-      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
+      providers: [provideRouter([{ path: 'profile', component: ProfileComponent }]), { provide: AuthService, useValue: authService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderComponent);
@@ -140,6 +142,51 @@ describe('HeaderComponent', () => {
     expect(authService.logout).toHaveBeenCalled();
   });
 
+  it('navigates to the profile and closes the dropdown', async () => {
+    authState.set({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        created_at: '2026-05-02T10:00:00Z',
+        discord: {
+          id: 'discord-1',
+          username: 'raidlead',
+          global_name: 'Raid Lead',
+          avatar_url: 'https://cdn.example.test/avatar.png',
+        },
+      },
+      session: {
+        id: 'session-1',
+        created_at: '2026-05-02T10:00:00Z',
+        last_seen_at: '2026-05-02T10:00:00Z',
+        expires_at: '2026-05-03T10:00:00Z',
+        user_agent: null,
+        login_location: { country: null, region: null, city: null },
+        current_location: { country: null, region: null, city: null },
+        is_current: true,
+      },
+    });
+    fixture.detectChanges();
+    getUserProfileButton().click(); fixture.detectChanges();
+    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('a[role=menuitem]');
+    expect(link.textContent).toContain('Profile');
+    expect(link.getAttribute('href')).toBe('/profile');
+    link.click(); await fixture.whenStable(); fixture.detectChanges();
+    expect(TestBed.inject(Router).url).toBe('/profile');
+    expect(fixture.nativeElement.querySelector('.user-menu')).toBeNull();
+    expect(getUserProfileButton().getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('does not expose profile navigation while signed out', () => {
+    expect(fixture.nativeElement.querySelector('a[href="/profile"]')).toBeNull();
+  });
+
+  it('registers the profile route within the existing layout', async () => {
+    const profileRoute = routes.find(route => route.children)?.children?.find(route => route.path === 'profile');
+    expect(profileRoute?.loadComponent).toBeDefined();
+    expect(await profileRoute!.loadComponent!()).toBe(ProfileComponent);
+  });
+
   function getDiscordLoginButton(): HTMLButtonElement {
     return fixture.nativeElement.querySelector('.btn-discord');
   }
@@ -149,6 +196,6 @@ describe('HeaderComponent', () => {
   }
 
   function getLogoutButton(): HTMLButtonElement {
-    return fixture.nativeElement.querySelector('.user-menu-button');
+    return fixture.nativeElement.querySelector('button.user-menu-button');
   }
 });

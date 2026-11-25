@@ -47,6 +47,14 @@
 
           @if (isUserMenuOpen()) {
             <div class="user-menu" role="menu" aria-label="User actions">
+              <a
+                class="user-menu-button"
+                routerLink="/profile"
+                (click)="isUserMenuOpen.set(false)"
+                role="menuitem"
+              >
+                Profile
+              </a>
               <button
                 type="button"
                 class="user-menu-button"

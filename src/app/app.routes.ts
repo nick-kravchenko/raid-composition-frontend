@@ -11,6 +11,7 @@ export const routes: Routes = [
     component: LayoutComponent,
     children: [
       { path: '', component: HomeComponent, pathMatch: 'full' },
+      { path: 'profile', loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent) },
       { path: 'style-demo', component: StyleDemoComponent },
       { path: 'guilds', loadComponent: () => import('./guilds/guilds.component').then(m => m.GuildsComponent) },
       { path: 'guilds/:id', loadComponent: () => import('./guilds/guild-detail.component').then(m => m.GuildDetailComponent) },
