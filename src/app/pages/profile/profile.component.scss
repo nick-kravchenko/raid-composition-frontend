@@ -63,62 +63,56 @@ dd {
 .connections {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
   width: 100%;
   max-width: 320px;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
-// Provider-inspired treatments; these are not official OAuth button specifications.
-// References: Blizzard logo guidelines and Archon RPGLogs Branding Information.
 .connection-button {
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 48px;
   height: auto;
-  min-height: 96px;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 4px;
-  white-space: normal;
-  text-align: center;
-}
-.connection-logo {
-  width: 132px;
-  height: 36px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.connection-button--battlenet {
-  background: #0074e0;
-  border-color: #148eff;
-  color: #fff;
+  padding: 11px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   font-weight: 600;
+  white-space: normal;
+  text-align: left;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 
   &:hover {
-    background: #0063bf;
-    border-color: #47a6ff;
+    background: var(--bg-surface);
+    border-color: var(--border-strong);
   }
   &:active {
-    background: #0055a6;
+    opacity: 0.85;
+  }
+}
+.connection-logo {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.connection-button--battlenet {
+  &:hover {
+    border-color: #148eff;
   }
   &:focus-visible {
     outline-color: #68b7ff;
   }
 }
 .connection-button--warcraftlogs {
-  background: #321416;
-  border-color: #a43232;
-  color: #ffe2aa;
-  font-weight: 700;
-  box-shadow: inset 3px 0 0 #c13b3b;
-
   &:hover {
-    background: #4a1c20;
-    border-color: #d45454;
-  }
-  &:active {
-    background: #261013;
+    border-color: #a5b7c9;
   }
   &:focus-visible {
-    outline-color: #ffcf85;
+    outline-color: #a5b7c9;
   }
 }
 .feedback {
